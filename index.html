@@ -756,7 +756,8 @@ body.scr-on canvas.scr-canvas {
 #scrUI .scr-tool[hidden] { display: none; }
 #scrUI .scr-ico { height: 24px; display: flex; align-items: center; font-size: 20px; line-height: 1; }
 #scrUI .scr-lbl { font-size: 11px; font-weight: 700; white-space: nowrap; letter-spacing: 0.02em; }
-#scrUI .scr-tool.on { background: rgba(160,120,30,0.85); border-color: rgba(240,210,120,0.95); }
+#scrUI .scr-tool.on, #scrUI .scr-pill.on { background: rgba(160,120,30,0.85); border-color: rgba(240,210,120,0.95); }
+#scrUI .scr-pill[hidden] { display: none; }
 #scrUI .scr-tool.armed { background: rgba(170,35,35,0.88); border-color: #f87171; }
 #scrUI .scr-swatch {
   width: 22px; height: 22px; border-radius: 50%; background: #111;
@@ -794,11 +795,16 @@ body.scr-on canvas.scr-canvas {
   #scrUI .scr-ink > span { display: none; }
   #scrUI .scr-ink-bar { width: 48px; }
   #scrUI .scr-top-r { gap: 6px; }
+  #scrUI .scr-pill { padding: 8px 11px; font-size: 13px; }
+  /* せまい画面：すみの残りは メニューの下へ、お知らせは その下へ */
+  #scrUI .scr-ink { position: absolute; left: max(10px, env(safe-area-inset-left)); top: calc(max(10px, env(safe-area-inset-top)) + 48px); padding: 5px 8px; }
+  #scrUI .scr-toast { top: calc(max(10px, env(safe-area-inset-top)) + 84px); }
   #scrUI .scr-bottom { gap: 4px; }
   #scrUI .scr-lbl { font-size: 10px; letter-spacing: 0; }
 }
 @media (max-width: 360px) {
-  #scrUI .scr-pill { padding: 8px 10px; font-size: 13px; }
+  #scrUI .scr-pill { padding: 8px 8px; font-size: 12px; }
+  #scrUI .scr-top-r { gap: 4px; }
 }
 </style>
 </head>
@@ -1150,6 +1156,7 @@ body.scr-on canvas.scr-canvas {
     <button type="button" class="scr-btn scr-pill" id="scrMenuBtn">← メニュー</button>
     <div class="scr-ink" title="すみの のこり"><span>すみ</span><div class="scr-ink-bar"><div id="scrInkFill"></div></div></div>
     <div class="scr-top-r">
+      <button type="button" class="scr-btn scr-pill" id="scrGyroBtn" hidden>📱 みまわす</button>
       <button type="button" class="scr-btn scr-pill" id="scrViewBtn">🔄 してん</button>
       <button type="button" class="scr-btn scr-pill scr-round" id="scrHelpBtn" aria-label="つかいかた">？</button>
     </div>
@@ -1175,8 +1182,9 @@ body.scr-on canvas.scr-canvas {
     <ul class="scr-help">
       <li><b>かく</b>：1本ゆびで なぞる（マウスは 左ボタン）。ペンなら つよく おすと 線が ふとく なる</li>
       <li><b>はらい</b>：さいごに さっと ふりぬいて はなすと「はらい」が でる。とめて はなすと その場で おわる</li>
-      <li><b>まわす</b>：2本ゆびで うごかす（マウスは 右ボタン か Shift＋ドラッグ）。まわしてから かくと、立体の 書に なる</li>
+      <li><b>まわす</b>：2本ゆびで 左右・上下に うごかすと、その向きに まわる。2本ゆびで ひねると かたむく（マウスは 右ボタン か Shift＋ドラッグで まわす、Shift＋ホイールで かたむける）。まわしてから かくと、立体の 書に なる</li>
       <li><b>大きさ</b>：2本ゆびで ひろげる・ちぢめる（マウスは ホイール）。「🔄 してん」で もとに もどる</li>
+      <li><b>📱 みまわす</b>（スマホ・タブレット）：スマホの 向きを かえると、まわりが 見える。ゆびを とめたまま スマホを うごかしても 線が のびる。もういちど おすと とまる</li>
       <li><b>いろ</b>：くろ・しろ・いろいろな いろ から えらぶ</li>
       <li><b>もどす</b>：1つ もどる（かわいた墨は もどせない）。<b>ぜんぶけす</b>：2回 つづけて おす</li>
       <li><b>おてほん</b>：おてほんを さいしょから 見る ／ けす</li>
@@ -8191,7 +8199,11 @@ function scrDeviceKindSync(){
 // ----- 定数 -----
 const SCR_DIST = GUIDE_PLACE_DISTANCE;  // カメラから「書く面」の中心までの距離（お手本が置かれる距離と同じ）
 const SCR_HOME = new THREE.Vector3(0, 0, 0);   // カメラのもとの位置（VR の入室時の目の位置＝原点と同じ）
-const SCR_PITCH_MAX = THREE.MathUtils.degToRad(80);
+const SCR_TWIST_START = THREE.MathUtils.degToRad(10);  // ひねりは、これだけひねってから回しはじめる（動かす・ピンチのときの誤動作よけ）
+const SCR_WHEEL_TWIST = 0.0025;         // PC：Shift＋ホイールでひねる速さ（rad／ホイールの量）
+const SCR_GYRO_TAU = 0.05;              // みまわす：向きの手ぶれをならす時定数（秒）
+const SCR_GYRO_POLE = THREE.MathUtils.degToRad(75);    // みまわす：これより真上・真下を向いているあいだは、左右・かたむきを止める
+const SCR_GYRO_WAIT_MS = 1500;          // みまわす：この時間 向きが届かなければ「この端末では使えない」とする
 const SCR_ZOOM_MIN = 0.35, SCR_ZOOM_MAX = 4;   // 指で変えられる大きさ（画面に合わせた大きさに対する倍率）
 const SCR_FIT_MARGIN = 1.45;            // 画面に合わせるとき、絵のまわりに残す余白（上下の操作パネルのぶんも含む）
 const SCR_FIT_DEFAULT = 0.45;           // お手本がないときに画面に収める大きさ（m）
@@ -8208,8 +8220,11 @@ const SCR_CLEAR_CONFIRM_MS = 3000;      // 「ぜんぶけす」の2回目を待
 let screenMode = false;      // 画面版で書いているあいだ true
 let scrPrimary = false;      // 画面版がメインの端末（スマホ・タブレット・PC）
 let scrSession = 0;          // 入るたびに増やす（読み込み待ちのあいだにメニューへ戻ったときの取り違え防止）
-const scrTarget = new THREE.Vector3(0, 0, -SCR_DIST);   // 書く面の中心（視点をまわす中心）
-let scrYaw = 0, scrPitch = 0, scrZoomMul = 1, scrFitZoom = 1, scrShiftY = 0;
+const scrHomeTarget = new THREE.Vector3(0, 0, -SCR_DIST);   // もとの視点での書く面の中心
+// 視点＝指でまわした向き（scrBaseQuat）と位置（scrBasePos）。みまわす（スマホの向き）は scrGyroD を重ねる
+const scrBaseQuat = new THREE.Quaternion();
+const scrBasePos = new THREE.Vector3();
+let scrZoomMul = 1, scrFitZoom = 1, scrShiftY = 0;
 let scrCamDirty = true;
 const scrCtrl = new THREE.Group();   // 見えない右コントローラー
 scrCtrl.name = "screenController";
@@ -8229,8 +8244,9 @@ let scrFramesDown = 0;
 let scrUpPending = false;        // 指を離した（最小フレーム数を待ってからトリガーを離す）
 let scrGapState = 0;             // 前の1画を離しきる前に次を書きはじめた：1＝このフレームはトリガーを離す／2＝次のフレームで新しい位置へ
 const scrDrawPos = new THREE.Vector3();
-const scrNextPos = new THREE.Vector3();
+const scrDrawClient = { x: 0, y: 0 };    // 書いている指の画面上の位置（毎フレーム、そのときの視点で書く面へうつす）
 const scrUpVel = new THREE.Vector3();
+let scrUpHarai = false;          // 離したときに はらいを出すか（取り消し・2本指のときは出さない）
 let scrStrokeT0 = 0;
 let scrLastPenT = -1e9;
 const scrSamples = [];           // はらいの速さを求めるための最近の位置 { t, x, y, z }
@@ -8238,12 +8254,27 @@ let scrHarai = null;             // { v, t0, tPrev, frames }
 let scrOrbit = null;             // null | "mouse" | "touch"
 let scrTouchLock = false;        // 2本指の操作のあと、指を全部離すまで書かない
 let scrPinchMid = { x: 0, y: 0 }, scrPinchDist = 0;
+let scrPinchAng = 0, scrTwistAcc = 0, scrTwistOn = false;
+// みまわす（スマホの向きで視点がまわる）
+let scrGyroOn = false;
+let scrGyroHave = false;                         // 向きが届いたか
+const scrGyroRaw = { a: 0, b: 0, g: 0, o: 0 };   // 届いた向き・画面の向き（度）
+let scrGyroRef = null;                           // 正面とする向き { y, x, z }（null なら次に届いた向きを正面にする）
+const scrGyroTgt = { y: 0, x: 0, z: 0 };         // 正面からの変化（左右・上下・かたむき）
+const scrGyroD = { y: 0, x: 0, z: 0 };           // 実際に使う変化（手ぶれをならしたもの）
+let scrGyroTimer = 0;
+let scrPrevFrameT = 0;
 const scrQueue = [];             // ボタンの操作（毎フレームの入力処理のはじめに行う）
 // 使い回し
 const scrRaycaster = new THREE.Raycaster();
 const scrNdc = new THREE.Vector2();
 const scrPlane = new THREE.Plane();
 const scrTmpV = new THREE.Vector3();
+const scrV1 = new THREE.Vector3();
+const scrQ1 = new THREE.Quaternion(), scrQ2 = new THREE.Quaternion();
+const scrEul = new THREE.Euler();
+const SCR_AX = new THREE.Vector3(1, 0, 0), SCR_AY = new THREE.Vector3(0, 1, 0), SCR_AZ = new THREE.Vector3(0, 0, 1);
+const SCR_Q_BACK = new THREE.Quaternion(-Math.SQRT1_2, 0, 0, Math.SQRT1_2);   // 画面の裏側を見る向き（x軸まわり −90°）
 let scrThumbCam = null;
 let scrGuideBoundsFor = null, scrGuideBoundsVal = null;
 let scrCenteredFor = null;       // 画面のまん中へ移しずみの再生データ（メニューの「ファイルから読込」）
@@ -8262,6 +8293,7 @@ const scrEl = {
     save: document.getElementById("scrSaveBtn"),
     galleryBtn: document.getElementById("scrGalleryBtn"),
     replay: document.getElementById("scrReplayBtn"),
+    gyro: document.getElementById("scrGyroBtn"),
     help: document.getElementById("scrHelpModal")
 };
 const scrShown = { undo: null, ink: -1, inkEmpty: null, color: "", guide: null, galSel: null };
@@ -8276,9 +8308,24 @@ function scrFrame(){
     for(const job of jobs){
         try { job(); } catch(e){ console.warn("画面版：操作に失敗しました", e); }
     }
-    if(scrCamDirty) scrApplyCamera();
-
     const now = performance.now();
+    let dt = (now - scrPrevFrameT) / 1000;
+    scrPrevFrameT = now;
+    if(!(dt > 0) || dt > 0.1) dt = 1 / 60;
+    if(scrGyroOn) scrUpdateGyro(dt);
+    // 2本指の操作は1フレームに1回まとめて見る（指ごとの動きが1本ずつ届くので、途中の形を「ひねり」とまちがえないように）
+    if(scrOrbit === "touch") scrPinchMove();
+    if(scrCamDirty || scrGyroOn) scrApplyCamera();
+
+    // 書いている指の位置を、このフレームの視点で書く面へうつす（視点が動けば、指を止めていても線がのびる）
+    // ※ 前の1画を離すフレーム（scrGapState 1）は、前の位置のまま
+    if(scrGapState !== 1 && (scrDrawId !== null || scrUpPending)){
+        if(scrClientToWorld(scrDrawClient.x, scrDrawClient.y, scrTmpV)){
+            scrDrawPos.copy(scrTmpV);
+            scrPushSample(now, scrTmpV);
+        }
+    }
+
     const trig = scrPad.buttons[BTN_TRIGGER];
     if(scrGapState === 1){
         // 前の1画を離す（このフレームだけ）。新しい1画は次のフレームから
@@ -8286,13 +8333,14 @@ function scrFrame(){
         scrHarai = null;
         trig.value = 0;
     } else {
-        if(scrGapState === 2){ scrDrawPos.copy(scrNextPos); scrGapState = 0; }
+        if(scrGapState === 2) scrGapState = 0;
         if(scrDrawId !== null || scrUpPending){
             scrFramesDown++;
             if(scrUpPending && scrFramesDown > SCR_MIN_DOWN_FRAMES){
                 // 指を離した：トリガーを離し、離す直前の速さで はらいを出す（止めて離したときは出ない）
                 scrUpPending = false;
                 trig.value = 0;
+                if(scrUpHarai) scrEstimateVelocity(now, scrUpVel); else scrUpVel.set(0, 0, 0);
                 if(scrUpVel.lengthSq() > 1e-6) scrHarai = { v: scrUpVel.clone(), t0: now, tPrev: now, frames: 0 };
             } else {
                 trig.value = scrPressure;
@@ -8336,19 +8384,50 @@ function scrFrame(){
     scrUpdateUI(now);
 }
 
-// ===== カメラ（書く面の中心をまわる）=====
+// ===== カメラ =====
+// カメラの向き ＝ みまわす（左右：空間の縦の線まわり）× 指でまわした向き × みまわす（上下・かたむき：カメラの軸まわり）
+// みまわすは その場で向きだけ変える（位置はそのまま）。回す範囲の上限はない
+function scrComposeQuat(out){
+    out.copy(scrBaseQuat);
+    if(scrGyroOn){
+        out.premultiply(scrQ2.setFromAxisAngle(SCR_AY, scrGyroD.y));
+        out.multiply(scrQ2.setFromAxisAngle(SCR_AX, scrGyroD.x));
+        out.multiply(scrQ2.setFromAxisAngle(SCR_AZ, scrGyroD.z));
+    }
+    return out;
+}
+
 function scrApplyCamera(){
     scrCamDirty = false;
-    const cp = Math.cos(scrPitch);
-    camera.position.set(
-        scrTarget.x + Math.sin(scrYaw) * cp * SCR_DIST,
-        scrTarget.y + Math.sin(scrPitch) * SCR_DIST,
-        scrTarget.z + Math.cos(scrYaw) * cp * SCR_DIST
-    );
-    camera.up.set(0, 1, 0);
-    camera.lookAt(scrTarget);
+    scrComposeQuat(camera.quaternion);
+    camera.position.copy(scrBasePos);
     camera.updateMatrixWorld(true);
     scrSetProjection(camera, window.innerWidth, window.innerHeight, scrFitZoom * scrZoomMul);
+}
+
+// 画面を基準にまわす（2本指・右ドラッグ・Shift＋ホイール）。視点が「書く面の中心」のまわりを回る
+//   ax：画面の横の線まわり ／ ay：画面の縦の線まわり ／ az：画面の奥へ向かう線まわり（どれもカメラが回る角度）
+function scrRotateView(ax, ay, az){
+    const q = scrComposeQuat(scrQ1);
+    scrV1.set(0, 0, -SCR_DIST).applyQuaternion(q).add(scrBasePos);      // 回る中心（書く面の中心）
+    q.multiply(scrQ2.setFromAxisAngle(SCR_AY, ay));
+    q.multiply(scrQ2.setFromAxisAngle(SCR_AX, ax));
+    q.multiply(scrQ2.setFromAxisAngle(SCR_AZ, az));
+    q.normalize();
+    scrBasePos.set(0, 0, SCR_DIST).applyQuaternion(q).add(scrV1);       // 中心から同じ距離に
+    if(scrGyroOn){
+        // みまわしているぶんを取りのぞいて「指でまわした向き」として覚える
+        q.premultiply(scrQ2.setFromAxisAngle(SCR_AY, -scrGyroD.y));
+        q.multiply(scrQ2.setFromAxisAngle(SCR_AZ, -scrGyroD.z));
+        q.multiply(scrQ2.setFromAxisAngle(SCR_AX, -scrGyroD.x));
+    }
+    scrBaseQuat.copy(q).normalize();
+    scrCamDirty = true;
+}
+
+// 指・マウスを動かした量（px）→ 回す角度。画面の短いほうの幅で約180°
+function scrRotK(){
+    return Math.PI / Math.max(320, Math.min(window.innerWidth, window.innerHeight));
 }
 
 // お手本は「上から1/5」の点が視線の先に来る（VR と同じ置き方）。
@@ -8391,15 +8470,14 @@ function scrGuideBounds(){
     return scrGuideBoundsVal;
 }
 
+// もとの視点にもどす（みまわす中なら、いまのスマホの向きを あらためて正面にする）
 function scrResetView(){
-    scrYaw = 0; scrPitch = 0; scrZoomMul = 1;
-    scrCamDirty = true;
-}
-
-function scrRotateBy(dx, dy){
-    const k = Math.PI / Math.max(320, Math.min(window.innerWidth, window.innerHeight));
-    scrYaw -= dx * k;
-    scrPitch = THREE.MathUtils.clamp(scrPitch + dy * k, -SCR_PITCH_MAX, SCR_PITCH_MAX);
+    scrBaseQuat.identity();
+    scrBasePos.copy(SCR_HOME);
+    scrZoomMul = 1;
+    scrGyroRef = null;
+    scrGyroTgt.y = scrGyroTgt.x = scrGyroTgt.z = 0;
+    scrGyroD.y = scrGyroD.x = scrGyroD.z = 0;
     scrCamDirty = true;
 }
 
@@ -8409,7 +8487,7 @@ function scrZoomBy(f){
     scrCamDirty = true;
 }
 
-// 画面の点 → 書く面（視線に垂直で、中心を通る面）の上の点
+// 画面の点 → 書く面（視線に垂直で、カメラから SCR_DIST 先の面）の上の点
 function scrClientToWorld(cx, cy, out){
     const r = renderer.domElement.getBoundingClientRect();
     if(r.width <= 0 || r.height <= 0) return false;
@@ -8417,8 +8495,109 @@ function scrClientToWorld(cx, cy, out){
     camera.updateMatrixWorld();
     scrRaycaster.setFromCamera(scrNdc, camera);
     camera.getWorldDirection(scrTmpV);
-    scrPlane.setFromNormalAndCoplanarPoint(scrTmpV, scrTarget);
+    scrV1.copy(camera.position).addScaledVector(scrTmpV, SCR_DIST);
+    scrPlane.setFromNormalAndCoplanarPoint(scrTmpV, scrV1);
     return scrRaycaster.ray.intersectPlane(scrPlane, out) !== null;
+}
+
+// ===== みまわす（スマホの向き）=====
+function scrGyroSupported(){
+    return typeof window.DeviceOrientationEvent !== "undefined"
+        && !!(window.matchMedia && window.matchMedia("(pointer: coarse)").matches);
+}
+
+function scrScreenAngle(){
+    if(screen.orientation && typeof screen.orientation.angle === "number") return screen.orientation.angle;
+    return typeof window.orientation === "number" ? window.orientation : 0;
+}
+
+function scrOnOrientation(e){
+    if(e.alpha == null && e.beta == null && e.gamma == null) return;
+    scrGyroRaw.a = e.alpha || 0;
+    scrGyroRaw.b = e.beta || 0;
+    scrGyroRaw.g = e.gamma || 0;
+    scrGyroRaw.o = scrScreenAngle();
+    scrGyroHave = true;
+}
+
+function scrWrapAngle(a){
+    return a - Math.round(a / (2 * Math.PI)) * 2 * Math.PI;
+}
+
+// 届いた向き → 正面からの変化（左右・上下・かたむき）。毎フレーム1回
+function scrUpdateGyro(dt){
+    if(!scrGyroHave) return;
+    const d2r = THREE.MathUtils.DEG2RAD;
+    // 端末の向き → 画面の裏を見るカメラの向き（three.js の DeviceOrientationControls と同じ式）
+    scrEul.set(scrGyroRaw.b * d2r, scrGyroRaw.a * d2r, -scrGyroRaw.g * d2r, "YXZ");
+    scrQ1.setFromEuler(scrEul).multiply(SCR_Q_BACK).multiply(scrQ2.setFromAxisAngle(SCR_AZ, -scrGyroRaw.o * d2r));
+    scrEul.setFromQuaternion(scrQ1, "YXZ");
+    const cy = scrEul.y, cx = scrEul.x, cz = scrEul.z;
+    if(!scrGyroRef){
+        // ON にしたとき・「してん」のときの向きを正面にする（見え方は飛ばない）
+        scrGyroRef = { y: cy, x: cx, z: cz };
+        scrGyroTgt.y = scrGyroTgt.x = scrGyroTgt.z = 0;
+        scrGyroD.y = scrGyroD.x = scrGyroD.z = 0;
+        return;
+    }
+    if(Math.abs(cx) < SCR_GYRO_POLE){
+        scrGyroTgt.y = scrWrapAngle(cy - scrGyroRef.y);
+        scrGyroTgt.z = scrWrapAngle(cz - scrGyroRef.z);
+    } else {
+        // 真上・真下を向くと左右とかたむきが決まらないので止めておく（もどったときに飛ばないよう、正面をずらす）
+        scrGyroRef.y = cy - scrGyroTgt.y;
+        scrGyroRef.z = cz - scrGyroTgt.z;
+    }
+    scrGyroTgt.x = cx - scrGyroRef.x;
+    const k = 1 - Math.exp(-dt / SCR_GYRO_TAU);
+    scrGyroD.y += scrWrapAngle(scrGyroTgt.y - scrGyroD.y) * k;
+    scrGyroD.x += (scrGyroTgt.x - scrGyroD.x) * k;
+    scrGyroD.z += scrWrapAngle(scrGyroTgt.z - scrGyroD.z) * k;
+}
+
+function scrGyroEnable(){
+    if(scrGyroOn || !screenMode) return;
+    const start = () => {
+        if(scrGyroOn || !screenMode) return;
+        scrGyroHave = false;
+        scrGyroRef = null;
+        scrGyroD.y = scrGyroD.x = scrGyroD.z = 0;
+        window.addEventListener("deviceorientation", scrOnOrientation);
+        scrGyroOn = true;
+        scrEl.gyro.classList.add("on");
+        scrToast("スマホを うごかすと まわりが 見えます（🔄 してん で しょうめんに もどる）", 3500);
+        clearTimeout(scrGyroTimer);
+        scrGyroTimer = setTimeout(() => {
+            if(scrGyroOn && !scrGyroHave){
+                scrGyroDisable();
+                scrToast("この端末では むきが つかえません");
+            }
+        }, SCR_GYRO_WAIT_MS);
+    };
+    // iPhone・iPad は、ボタンを押したときに許可をもらう（押した処理の中で すぐに呼ぶ必要がある）
+    const DOE = window.DeviceOrientationEvent;
+    if(DOE && typeof DOE.requestPermission === "function"){
+        DOE.requestPermission().then(r => {
+            if(r === "granted") start();
+            else scrToast("むきを つかうことが ゆるされませんでした（Safari を ひらきなおすと もういちど きかれます）", 4000);
+        }).catch(() => scrToast("むきを つかえませんでした", 3000));
+    } else {
+        start();
+    }
+}
+
+// 止めるときは、いまの見え方のまま止める（みまわしたぶんを「指でまわした向き」に入れる）
+function scrGyroDisable(){
+    clearTimeout(scrGyroTimer);
+    if(!scrGyroOn) return;
+    scrComposeQuat(scrQ1);
+    scrBaseQuat.copy(scrQ1);
+    scrGyroOn = false;
+    scrGyroRef = null;
+    scrGyroD.y = scrGyroD.x = scrGyroD.z = 0;
+    window.removeEventListener("deviceorientation", scrOnOrientation);
+    scrEl.gyro.classList.remove("on");
+    scrCamDirty = true;
 }
 
 // ===== 指・マウス・ペン =====
@@ -8476,6 +8655,9 @@ function scrBeginPinch(){
     scrTouchLock = true;
     scrPinchMid = { x: (pr[0].x + pr[1].x) / 2, y: (pr[0].y + pr[1].y) / 2 };
     scrPinchDist = Math.hypot(pr[0].x - pr[1].x, pr[0].y - pr[1].y);
+    scrPinchAng = Math.atan2(pr[1].y - pr[0].y, pr[1].x - pr[0].x);
+    scrTwistAcc = 0;
+    scrTwistOn = false;
 }
 
 function scrPinchMove(){
@@ -8483,7 +8665,16 @@ function scrPinchMove(){
     if(!pr) return;
     const mx = (pr[0].x + pr[1].x) / 2, my = (pr[0].y + pr[1].y) / 2;
     const d = Math.hypot(pr[0].x - pr[1].x, pr[0].y - pr[1].y);
-    scrRotateBy(mx - scrPinchMid.x, my - scrPinchMid.y);
+    const ang = Math.atan2(pr[1].y - pr[0].y, pr[1].x - pr[0].x);
+    // ひねり：はっきりひねってから回しはじめる（画面の上で右回りにひねると、絵も右回り）
+    const da = scrWrapAngle(ang - scrPinchAng);
+    scrPinchAng = ang;
+    let az = 0;
+    if(scrTwistOn) az = da;
+    else if(Math.abs(scrTwistAcc += da) > SCR_TWIST_START) scrTwistOn = true;
+    // 左右に動かす：画面の縦の線まわり ／ 上下に動かす：画面の横の線まわり（絵が指についてくる向き）
+    const k = scrRotK();
+    scrRotateView(-(my - scrPinchMid.y) * k, -(mx - scrPinchMid.x) * k, az);
     if(scrPinchDist > 20 && d > 20) scrZoomBy(d / scrPinchDist);
     scrPinchMid.x = mx; scrPinchMid.y = my;
     scrPinchDist = d;
@@ -8492,21 +8683,20 @@ function scrPinchMove(){
 function scrBeginDraw(e, now){
     // 再生中（ファイルの読込・もういちど）は書けないので、タッチで最後まで とばす
     if(replayActive){ finishReplayImmediately(); return; }
-    if(!scrClientToWorld(e.clientX, e.clientY, scrTmpV)) return;
     if(scrUpPending){
         // 前の1画をまだ離しきっていない（すばやい連打）：1フレームだけトリガーを離してから書きはじめる
         scrUpPending = false;
         scrGapState = 1;
     }
-    if(scrGapState) scrNextPos.copy(scrTmpV); else scrDrawPos.copy(scrTmpV);
+    scrDrawClient.x = e.clientX;
+    scrDrawClient.y = e.clientY;
     scrHarai = null;
     scrDrawId = e.pointerId;
     scrDrawType = e.pointerType;
     scrPressure = scrPressureOf(e);
     scrFramesDown = 0;
     scrStrokeT0 = now;
-    scrSamples.length = 0;
-    scrPushSample(now, scrTmpV);
+    scrSamples.length = 0;    // 位置は次のフレームで決まる（scrFrame）
 }
 
 // 書いている途中で2本目の指が来た：書きはじめたばかりなら、その1画は取り消す（既存の「ジェスチャで1画を取り消す」）。
@@ -8520,7 +8710,7 @@ function scrEndDrawForGesture(now){
         scrPad.buttons[BTN_TRIGGER].value = 0;
         if(drawing) abortStrokeForGesture();
     } else {
-        scrUpVel.set(0, 0, 0);
+        scrUpHarai = false;
         scrUpPending = true;
     }
 }
@@ -8564,15 +8754,17 @@ function scrOnMove(e){
     p.x = e.clientX; p.y = e.clientY;
     if(e.pointerType === "pen") scrLastPenT = now;
     if(e.pointerId === scrDrawId){
-        if(scrClientToWorld(e.clientX, e.clientY, scrTmpV)){
-            if(scrGapState) scrNextPos.copy(scrTmpV); else scrDrawPos.copy(scrTmpV);
-            scrPushSample(now, scrTmpV);
-        }
+        scrDrawClient.x = e.clientX;
+        scrDrawClient.y = e.clientY;
         if(e.pointerType === "pen") scrPressure = scrPressureOf(e);
         return;
     }
-    if(scrOrbit === "mouse" && e.pointerType === "mouse"){ scrRotateBy(dx, dy); return; }
-    if(scrOrbit === "touch" && e.pointerType === "touch") scrPinchMove();
+    if(scrOrbit === "mouse" && e.pointerType === "mouse"){
+        const k = scrRotK();
+        scrRotateView(-dy * k, -dx * k, 0);
+        return;
+    }
+    // 2本指（scrOrbit "touch"）は位置を覚えるだけ。回す・大きさは scrFrame() で1フレームに1回
 }
 
 function scrOnUp(e, cancelled){
@@ -8581,11 +8773,11 @@ function scrOnUp(e, cancelled){
     scrPointers.delete(e.pointerId);
     const now = performance.now();
     if(e.pointerId === scrDrawId){
-        if(!cancelled && scrClientToWorld(e.clientX, e.clientY, scrTmpV)){
-            if(scrGapState) scrNextPos.copy(scrTmpV); else scrDrawPos.copy(scrTmpV);
-            scrPushSample(now, scrTmpV);
+        if(!cancelled){
+            scrDrawClient.x = e.clientX;
+            scrDrawClient.y = e.clientY;
         }
-        if(cancelled) scrUpVel.set(0, 0, 0); else scrEstimateVelocity(now, scrUpVel);
+        scrUpHarai = !cancelled;
         scrDrawId = null;
         scrUpPending = true;
     }
@@ -8602,15 +8794,17 @@ function scrOnWheel(e){
     if(!screenMode) return;
     e.preventDefault();
     if(scrDrawId !== null) return;   // 書いている途中は大きさを変えない（書く面がずれるため）
-    let dy = e.deltaY;
+    // Shift＋ホイールは、ブラウザによって横スクロール（deltaX）として届く
+    let dy = e.shiftKey ? (e.deltaY || e.deltaX) : e.deltaY;
     if(e.deltaMode === 1) dy *= 16; else if(e.deltaMode === 2) dy *= 400;
+    if(e.shiftKey){ scrRotateView(0, 0, dy * SCR_WHEEL_TWIST); return; }   // Shift＋ホイール：ひねる
     scrZoomBy(Math.exp(-dy * (e.ctrlKey ? 0.01 : 0.0015)));   // ctrlKey：トラックパッドのピンチ
 }
 
 // 指をすべて離したことにする（メニューに戻る・ほかのアプリに切りかえたとき）
 function scrReleaseAll(){
     if(scrDrawId !== null){
-        scrUpVel.set(0, 0, 0);
+        scrUpHarai = false;
         scrDrawId = null;
         scrUpPending = true;
     }
@@ -8897,7 +9091,9 @@ function scrEnter(){
     scrResetView();
     scrComputeFit();
     scrApplyCamera();
-    scrDrawPos.copy(scrTarget);
+    scrDrawPos.copy(scrHomeTarget);
+    scrEl.gyro.hidden = !scrGyroSupported();
+    scrEl.gyro.classList.remove("on");
     galleryVisible = false;
     scrRefreshButtons();
     const touch = window.matchMedia && window.matchMedia("(pointer: coarse)").matches;
@@ -8920,6 +9116,7 @@ function scrEnter(){
 
 function scrExit(){
     if(!screenMode) return;
+    scrGyroDisable();
     scrReleaseAll();
     scrUpPending = false; scrGapState = 0; scrHarai = null;
     scrQueue.length = 0;
@@ -8952,7 +9149,11 @@ function scrExit(){
 (function(){
     scrBuildPalette();
     document.getElementById("scrMenuBtn").addEventListener("click", scrExit);
-    document.getElementById("scrViewBtn").addEventListener("click", () => { scrResetView(); scrToast("してんを もとに もどしました", 1500); });
+    document.getElementById("scrViewBtn").addEventListener("click", () => {
+        scrResetView();
+        scrToast(scrGyroOn ? "してんを もとに もどしました（いまの むきが しょうめん）" : "してんを もとに もどしました", 1800);
+    });
+    scrEl.gyro.addEventListener("click", () => { if(scrGyroOn) scrGyroDisable(); else scrGyroEnable(); });
     scrEl.color.addEventListener("click", () => scrTogglePop(scrEl.palette, scrEl.color));
     scrEl.galleryBtn.addEventListener("click", () => scrTogglePop(scrEl.gallery, scrEl.galleryBtn));
     scrEl.undo.addEventListener("click", () => scrDrawingAction(scrUndo));
