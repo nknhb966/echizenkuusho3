@@ -789,6 +789,31 @@ body.scr-on canvas.scr-canvas {
 }
 #scrGallery .scr-empty { max-width: 280px; font-size: 13px; line-height: 1.6; color: #ddd4b8; }
 .scr-help { margin: 0 0 14px; padding-left: 1.2em; font-size: 14px; line-height: 1.8; }
+/* おわる（もちかえる？）・できた さくひん */
+.ex-modal .fin-take { border-color: rgba(200,168,74,0.75); background: rgba(200,168,74,0.22); color: #fff1c8; }
+.ex-modal .qrs-inner.fin-result { width: min(760px, 100%); }
+.fin-body { display: flex; gap: 16px; align-items: center; justify-content: center; margin: 4px 0 6px; }
+.fin-img-wrap { flex: 1 1 0; min-width: 0; display: flex; justify-content: center; }
+.fin-img-wrap img {
+  display: block; max-width: 100%; max-height: 52vh; border-radius: 6px;
+  box-shadow: 0 0 0 3px #d9411e, 0 6px 20px rgba(0,0,0,0.5);
+}
+.fin-qr { flex: 0 0 auto; width: 210px; text-align: center; }
+.fin-qr[hidden] { display: none; }
+.fin-qr canvas { display: block; width: 190px; height: 190px; margin: 0 auto; border-radius: 6px; background: #fff; image-rendering: pixelated; }
+.fin-qr canvas[hidden] { display: none; }
+.fin-qr-msg { margin: 8px 0 0; font-size: 13px; line-height: 1.6; color: #f0e8d0; white-space: pre-line; }
+.fin-qr .start-file-btn { margin-top: 8px; }
+.fin-qr .start-file-btn[hidden] { display: none; }
+.fin-tm { margin: 6px 0 0; font-size: 10px; line-height: 1.4; color: rgba(200,190,160,0.6); }
+.fin-tm[hidden] { display: none; }
+.fin-result .qrs-btns .start-file-btn { min-width: 0; white-space: normal; line-height: 1.4; }
+@media (max-width: 600px) {
+  .fin-body { flex-direction: column; }
+  .fin-img-wrap img { max-height: 40vh; }
+  .fin-qr { width: 100%; }
+  .fin-qr canvas { width: 170px; height: 170px; }
+}
 .scr-help li { margin: 3px 0; }
 .scr-help b { color: #e8c86a; }
 @media (max-width: 440px) {
@@ -902,7 +927,7 @@ body.scr-on canvas.scr-canvas {
     </div>
 
     <!-- 画面版がメインの端末では、VR（Quest）用の作品展示の設定は たたんでおく（管理する人が ひらける） -->
-    <button type="button" class="start-file-btn" id="scrVrSettingsBtn">⚙️ VR（Quest）用の せってい を ひらく</button>
+    <button type="button" class="start-file-btn" id="scrVrSettingsBtn">⚙️ さくひんてんじ・QRコード の せってい（管理用）を ひらく</button>
 
     <!-- ===== さくひんてんじ の せってい（①さくひんてんじ ②てんじのきょうゆう ③QRコード ④ダウンロード ⑤ぜんぶけす）===== -->
     <div class="start-slider-block ssl-exhibit">
@@ -1138,7 +1163,7 @@ body.scr-on canvas.scr-canvas {
             <div class="ctrl-label-row"><span class="btn-badge red">① トリガー</span><span class="desc">おしながらうごかすと 絵がかける！つよくおすと 線がふとくなる。はやくふりぬくと「はらい」がでる</span></div>
             <div class="ctrl-label-row"><span class="btn-badge purple">② スティック</span><span class="desc">たおした方向で いろをえらべる（カラーモード）。カチッと おしこむと、おてほんが さいしょから でてくる。もういちど おしこむと、おてほんが きえる</span></div>
             <div class="ctrl-label-row"><span class="btn-badge green">③ A ボタン</span><span class="desc">くろ↔しろ に きりかえる（メニューで「リピート」を する にすると、ながおしで さいしょから もういちど見る）</span></div>
-            <div class="ctrl-label-row"><span class="btn-badge orange">④ B ボタン</span><span class="desc">1つもどる（かわいた墨は もどせない）。ながくおすと ぜんぶけす</span></div>
+            <div class="ctrl-label-row"><span class="btn-badge orange">④ B ボタン</span><span class="desc">1つもどる（かわいた墨は もどせない）。ながくおすと「おわる」：もちかえる（QRコード）／けして おわる／つづける を えらべる（さくひんてんじ中は ぜんぶけす）</span></div>
             <div class="ctrl-label-row"><span class="btn-badge gray">⑤ メニューボタン</span><span class="desc">メニューに もどる（もどって入りなおすと「こてい」も かいじょされる）</span></div>
             <div class="ctrl-label-row"><span class="btn-badge gray">⑥ グリップ</span><span class="desc">にぎりながら… A＝絵をうごかす／B＝絵をまわす（メニューで「絵をうごかす・まわす」を する のとき）／スティック上下＝ふとさ・左右＝はらいのながさ（メニューで「ちょうせい」のとき）／おしこみ＝もとにもどす</span></div>
             <div class="ctrl-label-row"><span class="btn-badge gray">🔒 こてい</span><span class="desc">みぎのグリップ＋トリガーを いっしょに引いたまま A を10回つづけておすと、かけない・けせない「こてい」になる。おなじそうさで かいじょ。こてい中に そうさしようとすると ブルッと ふるえる。メニューにもどって 入りなおしても かいじょ</span></div>
@@ -1167,11 +1192,44 @@ body.scr-on canvas.scr-canvas {
   <div class="scr-bottom">
     <button type="button" class="scr-btn scr-tool" id="scrColorBtn"><span class="scr-ico"><span class="scr-swatch" id="scrSwatch"></span></span><span class="scr-lbl">いろ</span></button>
     <button type="button" class="scr-btn scr-tool" id="scrUndoBtn"><span class="scr-ico">↩️</span><span class="scr-lbl">もどす</span></button>
-    <button type="button" class="scr-btn scr-tool" id="scrClearBtn"><span class="scr-ico">🗑️</span><span class="scr-lbl">ぜんぶけす</span></button>
+    <button type="button" class="scr-btn scr-tool" id="scrClearBtn"><span class="scr-ico">🏁</span><span class="scr-lbl">おわる</span></button>
     <button type="button" class="scr-btn scr-tool" id="scrGuideBtn" hidden><span class="scr-ico">📜</span><span class="scr-lbl">おてほん</span></button>
     <button type="button" class="scr-btn scr-tool" id="scrSaveBtn"><span class="scr-ico">💾</span><span class="scr-lbl">ほぞん</span></button>
     <button type="button" class="scr-btn scr-tool" id="scrGalleryBtn"><span class="scr-ico">🖼️</span><span class="scr-lbl">ギャラリー</span></button>
     <button type="button" class="scr-btn scr-tool" id="scrReplayBtn" hidden><span class="scr-ico">▶️</span><span class="scr-lbl">もういちど</span></button>
+  </div>
+</div>
+
+<!-- ===== モーダル（おわる：この さくひんを もちかえる？） ===== -->
+<div id="finAskModal" class="ex-modal" role="dialog" aria-modal="true" aria-labelledby="finAskTitle">
+  <div class="qrs-inner">
+    <h3 id="finAskTitle">この さくひんを もちかえる？</h3>
+    <button type="button" class="start-file-btn clr-choice fin-take" id="finTakeBtn">📲 もちかえる</button>
+    <p class="clr-note" id="finTakeNote">がぞうを ほぞんして、けして さいしょから かきます</p>
+    <button type="button" class="start-file-btn clr-choice clr-danger" id="finDiscardBtn">🗑️ けして おわる</button>
+    <p class="clr-note">ほぞんしないで けして、さいしょから かきます</p>
+    <button type="button" class="start-file-btn clr-choice" id="finContinueBtn">✍️ つづける</button>
+    <p class="clr-note">けさないで、このまま かきつづけます</p>
+  </div>
+</div>
+
+<!-- ===== モーダル（もちかえる：できた さくひん・QRコード・ほぞん） ===== -->
+<div id="finResultModal" class="ex-modal" role="dialog" aria-modal="true" aria-labelledby="finResultTitle">
+  <div class="qrs-inner fin-result">
+    <h3 id="finResultTitle">さくひんが できました！</h3>
+    <div class="fin-body">
+      <div class="fin-img-wrap"><img id="finImg" alt="できあがった さくひん"></div>
+      <div class="fin-qr" id="finQrBox" hidden>
+        <canvas id="finQrCanvas" width="512" height="512" hidden></canvas>
+        <p class="fin-qr-msg" id="finQrMsg"></p>
+        <button type="button" class="start-file-btn" id="finQrRetry" hidden>🔁 もういちど</button>
+        <p class="fin-tm" id="finQrTm" hidden>QRコードは株式会社デンソーウェーブの登録商標です。</p>
+      </div>
+    </div>
+    <div class="qrs-btns">
+      <button type="button" class="start-file-btn qrs-primary" id="finSaveBtn">💾 がぞうを ほぞん</button>
+      <button type="button" class="start-file-btn" id="finEndBtn">🏁 おわる（さいしょから）</button>
+    </div>
   </div>
 </div>
 
@@ -1186,7 +1244,8 @@ body.scr-on canvas.scr-canvas {
       <li><b>大きさ</b>：2本ゆびで ひろげる・ちぢめる（マウスは ホイール）。「🔄 してん」で もとに もどる</li>
       <li><b>📱 みまわす</b>（スマホ・タブレット）：スマホの 向きを かえると、まわりが 見える。ゆびを とめたまま スマホを うごかしても 線が のびる。もういちど おすと とまる</li>
       <li><b>いろ</b>：くろ・しろ・いろいろな いろ から えらぶ</li>
-      <li><b>もどす</b>：1つ もどる（かわいた墨は もどせない）。<b>ぜんぶけす</b>：2回 つづけて おす</li>
+      <li><b>もどす</b>：1つ もどる（かわいた墨は もどせない）</li>
+      <li><b>おわる</b>：「もちかえる」で がぞうを ほぞん（QRコードでも うけとれる）、「けして おわる」で さいしょから、「つづける」で もどる</li>
       <li><b>おてほん</b>：おてほんを さいしょから 見る ／ けす</li>
       <li><b>ほぞん</b>・<b>ギャラリー</b>：いまの絵を ほぞんして、あとで よびだせる（ブラウザを とじると きえます。ながく のこすときは メニューの「ファイルに保存」）</li>
       <li>ふでの 太さ・はらいの 長さなどは、メニューの「くわしい設定」で かえられます</li>
@@ -2735,6 +2794,7 @@ function checkUndo(){
             }
             if(!bBtnLongFired && held >= LONG_PRESS_TRIGGER_MS){
                 bBtnLongFired = true;
+                if(finOpenFromLongB()){ prevBUndoPressed = pressed; return; } // ★通常の VR：消す前に「もちかえる？」を聞く
                 if(replayActive) finishReplayImmediately();
                 clearAll();
                 colorMode = COLOR_MODE.BW;
@@ -3849,7 +3909,7 @@ function render(){
 
     // ★作品展示：展示物の配置・表示更新と ①作品選択／②作品調整／③描画 の入力処理。
     //   true のフレームは、既存の入力処理（描画・色・取り消し・ギャラリー・固定化など）を丸ごと止める。
-    const exhibitBlocksInput = exhibitUpdate();
+    const exhibitBlocksInput = exhibitUpdate() || finUpdate(); // ★おわる（もちかえる）の画面を出しているあいだも止める
 
     if(!rightController){
         renderer.render(scene,camera);
@@ -6769,7 +6829,8 @@ function exCaptureUserWork(){
         hidden.push(c);
     }
     const oldBg = scene.background, oldOverride = scene.overrideMaterial;
-    scene.background = new THREE.Color(0xffffff);   // 白い紙
+    const paperCol = new THREE.Color(capPaperHex());   // ★白い紙（白い墨があれば和紙色）
+    scene.background = paperCol;
     scene.overrideMaterial = exCaptureMat;          // 光の当たり方をなくし、墨の色そのままに
     const wasXR = renderer.xr.enabled;
     const prevRT = renderer.getRenderTarget();      // VR中はヘッドセットの描画先。あとで必ず戻す
@@ -6801,15 +6862,16 @@ function exCaptureUserWork(){
     const img = ctx.createImageData(W, H);
     const d = img.data;
     const row = W * 4;
-    // 念のため、透けている画素（墨のない所・墨のふちの半透明）は白い紙の上に重ねた色にする
-    // （値は「色×不透明度」なので、白を (255−不透明度) ぶん足せばよい）
+    // 念のため、透けている画素（墨のない所・墨のふちの半透明）は紙の上に重ねた色にする
+    // （値は「色×不透明度」なので、紙の色を (255−不透明度) ぶん足せばよい）
+    const pr = paperCol.r, pg = paperCol.g, pb = paperCol.b;   // ★紙の色（リニア）
     for(let y = 0; y < H; y++){
         const src = y * row, dst = (H - 1 - y) * row;   // 上下を反転
         for(let x = 0; x < row; x += 4){
             const paper = 255 - px[src + x + 3];
-            d[dst + x]     = EX_LIN2SRGB[Math.min(255, px[src + x]     + paper)];
-            d[dst + x + 1] = EX_LIN2SRGB[Math.min(255, px[src + x + 1] + paper)];
-            d[dst + x + 2] = EX_LIN2SRGB[Math.min(255, px[src + x + 2] + paper)];
+            d[dst + x]     = EX_LIN2SRGB[Math.min(255, px[src + x]     + Math.round(paper * pr))];
+            d[dst + x + 1] = EX_LIN2SRGB[Math.min(255, px[src + x + 1] + Math.round(paper * pg))];
+            d[dst + x + 2] = EX_LIN2SRGB[Math.min(255, px[src + x + 2] + Math.round(paper * pb))];
             d[dst + x + 3] = 255;
         }
     }
@@ -7960,7 +8022,7 @@ function exhibitRestoreAfterCapture(v){
         btn.textContent = exhibitEnabled ? "🖼️ する" : "🚫 しない";
         btn.style.opacity = exhibitEnabled ? "1.0" : "0.55";
         exUpdateStartStatus();
-        exRefreshQrToggle();   // 作品展示が「しない」のときは QR コードのトグルを押せなくする
+        exRefreshQrToggle();
         exRefreshShareToggle();
     }
     btn.addEventListener("click", () => {
@@ -7978,26 +8040,24 @@ function exhibitRestoreAfterCapture(v){
 
 // ===== 開始画面の「QRコード」トグル =====
 // 「する」のとき：④で作品の右どなりに QR コードを出し（作品を GAS へ送る）、②に「QRコード」ボタンを出す。
-// 作品展示が「しない」のときは押せない（QR コードは作品展示の中だけで使うため）。
+// ★ふつうの「おわる → もちかえる」（VR・画面版）でも、「する」なら QR コードを出す（作品展示が「しない」でも押せる）。
 function exRefreshQrToggle(){
     exRefreshShareToggle();
     exRefreshClearBtn();
     const btn = document.getElementById("qrToggle");
     const st = document.getElementById("qrStatus");
     if(!btn) return;
-    btn.disabled = !exhibitEnabled;
-    btn.classList.toggle("qr-off", !exhibitEnabled);
+    // ★QR コードは、作品展示と ふつうの「おわる → もちかえる」の両方で使うので、作品展示が「しない」でも押せる
     btn.textContent = exQrEnabled ? "🔳 する" : "🚫 しない";
-    btn.style.opacity = !exhibitEnabled ? "" : (exQrEnabled ? "1.0" : "0.55");
+    btn.style.opacity = exQrEnabled ? "1.0" : "0.55";
     if(st){
-        st.textContent = (exhibitEnabled && exQrEnabled && !exQrConfigured())
+        st.textContent = (exQrEnabled && !exQrConfigured())
             ? "⚠️ 受け取りQRの設定（GAS の URL・合言葉）が まだです" : "";
     }
 }
 (function(){
     const btn = document.getElementById("qrToggle");
     btn.addEventListener("click", () => {
-        if(!exhibitEnabled) return;
         exQrEnabled = !exQrEnabled;
         exSaveSetting(EX_QR_TOGGLE_SETTING_KEY, exQrEnabled ? "on" : "off");
         if(exQrEnabled) exQrLoadLib();   // VR に入る前に、QR コードを作るライブラリを読んでおく
@@ -8175,7 +8235,7 @@ renderer.xr.addEventListener("sessionend", exhibitOnSessionEnd);
 //       指・マウスはトリガーをいっぱいに引いたのと同じ（速く動かすと細くなるのは VR と同じ）。ペンは筆圧で太さが変わる
 //   ・指を離す … 離す直前の速さで、コントローラーを少しだけ先へ進める（あとは既存の「はらい」の処理にまかせる）
 //   ・2本指（右ドラッグ・Shift＋ドラッグ）… 視点をまわす ／ ピンチ（ホイール）… 大きさ。絵そのものは動かさない
-//   ・下のボタン … 色・もどす・ぜんぶけす・おてほん・ほぞん・ギャラリーは、既存の関数を呼ぶ
+//   ・下のボタン … 色・もどす・おてほん・ほぞん・ギャラリーは、既存の関数を呼ぶ。「おわる」は もちかえる（fin）へ
 // 作品展示（展示・なぞり書き・QR・共有）は VR だけ。画面版では使わない。
 // 既存コードとの接点：
 //   reconcileInputSources() … XR セッションがなく画面版のときは scrFrame() で仮想のコントローラーをつなぐ
@@ -8214,7 +8274,6 @@ const SCR_VEL_WINDOW_MS = 80;           // はらいの速さを求める時間�
 const SCR_VEL_MAX = 4;                  // はらいの速さの上限（m/秒）
 const SCR_HARAI_TAU = 0.07;             // はらいで先へ進める速さがへっていく時定数（秒）
 const SCR_PEN_FULL = 0.65;              // ペンの筆圧がこれ以上で、トリガーをいっぱいに引いたのと同じ
-const SCR_CLEAR_CONFIRM_MS = 3000;      // 「ぜんぶけす」の2回目を待つ時間
 
 // ----- 状態 -----
 let screenMode = false;      // 画面版で書いているあいだ true
@@ -8299,7 +8358,6 @@ const scrEl = {
 const scrShown = { undo: null, ink: -1, inkEmpty: null, color: "", guide: null, galSel: null };
 let scrToastTimer = 0;
 let scrLimitToasted = false;
-let scrClearArmedUntil = 0;
 
 // ===== 毎フレーム（reconcileInputSources() から呼ばれる）=====
 function scrFrame(){
@@ -8718,6 +8776,7 @@ function scrEndDrawForGesture(now){
 function scrOnDown(e){
     if(!screenMode) return;
     e.preventDefault();
+    if(finState) return;   // おわる（もちかえる）の画面を出しているあいだは書かない
     scrClosePops();
     const now = performance.now();
     try { renderer.domElement.setPointerCapture(e.pointerId); } catch(_){ }
@@ -8855,17 +8914,6 @@ function scrUndo(){
     undoLastStroke();
 }
 
-// VR の「B ながおし」と同じ（お手本は消さない）
-function scrClearAll(){
-    if(replayActive) finishReplayImmediately();
-    clearAll();
-    colorMode = COLOR_MODE.BW;
-    colorChanged = false;
-    isWhite = false;
-    currentColor.set(0x111111);
-    blackLockFrames = BLACK_LOCK_DURATION;
-    scrToast("🗑️ ぜんぶ けしました");
-}
 
 // VR の「スティックおしこみ」と同じ
 function scrToggleGuide(){
@@ -9049,7 +9097,7 @@ function scrUpdateUI(now){
     }
     if(totalLimitNotified && !scrLimitToasted){
         scrLimitToasted = true;
-        scrToast("すみが なくなりました（もどす・ぜんぶけす で また かけます）", 3500);
+        scrToast("すみが なくなりました（もどす・おわる で また かけます）", 3500);
     } else if(!totalLimitNotified){
         scrLimitToasted = false;
     }
@@ -9064,14 +9112,8 @@ function scrUpdateUI(now){
         scrEl.guide.classList.toggle("on", guideOn);
     }
     if(!scrEl.gallery.hidden && scrShown.galSel !== currentGalleryIndex) scrRenderGallery();
-    if(scrClearArmedUntil && now > scrClearArmedUntil) scrDisarmClear();
 }
 
-function scrDisarmClear(){
-    scrClearArmedUntil = 0;
-    scrEl.clear.classList.remove("armed");
-    scrEl.clear.querySelector(".scr-lbl").textContent = "ぜんぶけす";
-}
 
 // ===== 入る・もどる =====
 function scrEnter(){
@@ -9083,7 +9125,6 @@ function scrEnter(){
     renderer.domElement.classList.add("scr-canvas");
     scrUI.hidden = false;
     scrClosePops();
-    scrDisarmClear();
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     resize();
     scrReleaseAll();
@@ -9131,6 +9172,7 @@ function scrExit(){
     }
     scrClosePops();
     scrEl.help.classList.remove("open");
+    finCloseScreenModals();
     scrUI.hidden = true;
     document.body.classList.remove("scr-on");
     renderer.domElement.classList.remove("scr-canvas");
@@ -9157,17 +9199,8 @@ function scrExit(){
     scrEl.color.addEventListener("click", () => scrTogglePop(scrEl.palette, scrEl.color));
     scrEl.galleryBtn.addEventListener("click", () => scrTogglePop(scrEl.gallery, scrEl.galleryBtn));
     scrEl.undo.addEventListener("click", () => scrDrawingAction(scrUndo));
-    scrEl.clear.addEventListener("click", () => {
-        if(scrClearArmedUntil){
-            scrDisarmClear();
-            scrDrawingAction(scrClearAll);
-            return;
-        }
-        scrClearArmedUntil = performance.now() + SCR_CLEAR_CONFIRM_MS;
-        scrEl.clear.classList.add("armed");
-        scrEl.clear.querySelector(".scr-lbl").textContent = "もういちど";
-        scrToast("もういちど おすと ぜんぶ けします", SCR_CLEAR_CONFIRM_MS);
-    });
+    // おわる：VR の「B ながおし」と同じく、もちかえる／けして おわる／つづける を聞く
+    scrEl.clear.addEventListener("click", () => scrDrawingAction(finOpenScreen));
     scrEl.guide.addEventListener("click", () => scrDrawingAction(scrToggleGuide));
     scrEl.save.addEventListener("click", () => scrDrawingAction(scrSave));
     scrEl.replay.addEventListener("click", () => scrDrawingAction(scrReplay));
@@ -9181,7 +9214,7 @@ function scrExit(){
     scrEl.help.addEventListener("click", e => { if(e.target === scrEl.help) closeHelp(); });
     document.addEventListener("keydown", e => {
         if(e.key === "Escape" && scrEl.help.classList.contains("open")){ closeHelp(); return; }
-        if(!screenMode) return;
+        if(!screenMode || finState) return;
         if(e.key === "Escape"){ scrClosePops(); return; }
         if((e.ctrlKey || e.metaKey) && !e.shiftKey && (e.key === "z" || e.key === "Z")){
             e.preventDefault();
@@ -9219,6 +9252,720 @@ function scrExit(){
         ss.classList.toggle("scr-show-vr", show);
         vrBtn.textContent = show ? "⚙️ VR（Quest）用の せってい を とじる" : "⚙️ VR（Quest）用の せってい を ひらく";
         if(show && exhibitEnabled && exNeedsLoad(false)) exStartLoading();
+    });
+})();
+
+// =====================================================================
+// ===== おわる（もちかえる）：ふつうの VR（START AR）と画面版 =====
+// VR の「B ながおし」／画面版の「🏁 おわる」で、次の3つから選ぶ（作品展示が動いているあいだは使わない）。
+//   もちかえる   … 書いた線の範囲に合わせて画像にし、線を消して、できた画像と QR を出す。「おわる」で最初から。
+//                  画面版は「がぞうを ほぞん」も（スマホは共有メニューから写真へ、PC はダウンロード）
+//   けして おわる … 線を消して最初から
+//   つづける     … 消さずに、そのまま続きを書く
+// 画像：遠近なしで写す。VR はいま向いている正面（上下の傾きは入れない）から、画面版は画面に見えている向きのまま。
+//       線の範囲＋まわりに約10%の余白、長辺 FIN_MAX_PX。紙は白（白い墨があれば和紙色）。お手本は写さない。
+// QR：開始画面の「QRコード」が「する」で、受け取りQRの設定（GAS）がある端末だけ（Code.gs はそのまま使う）。
+// VR のボタンは、作品展示と同じ部品・操作（レイで指して トリガー か A）。
+// 既存コードとの接点：
+//   render()            … finUpdate() が true のフレームは、既存の入力処理を止める（作品展示と同じしくみ）
+//   checkUndo()         … B ながおしで finOpenFromLongB() を呼ぶ（false のときは これまでどおり ぜんぶけす）
+//   exCaptureUserWork() … 紙の色を capPaperHex() で決める（作品展示の画像も同じルール）
+// =====================================================================
+const FIN_MAX_PX = 2048;               // 画像の長辺（px）
+const FIN_MARGIN = 0.10;               // 線の範囲のまわりに足す余白（長いほうの辺に対する割合）
+const FIN_MARGIN_MIN = 0.01;           // 余白の最小（m）
+const CAP_PAPER_WHITE = 0xffffff;      // 白い紙
+const CAP_PAPER_WASHI = 0xe2dac8;      // 和紙色（画面版の背景と同じ色）
+const FIN_ASK_DIST = 0.8;              // VR：「もちかえる？」を出す距離（m）。書いた線がもっと近ければ、その手前に出す
+const FIN_ASK_DIST_MIN = 0.35;         // VR：いちばん近くに出すときの距離（m）
+const FIN_ASK_DROP = 0.12;             // VR：目の高さから下げる量（m）
+const FIN_ASK_VGAP = 0.05;             // VR：ボタンどうしのすき間（m）
+
+let finState = null;      // null ／ "ask"（もちかえる？）／ "show"（できた画像・QR）／ "leave"（VR：ボタンを全部離すまで待つ）
+let finGate = false;      // VR：開いた直後は、ボタンを全部離すまで選べない
+let finWork = null;       // できた画像 { canvas, W, H, blob, url, fileName, token, state, until, error, texture }
+let finVR = null;         // VR の表示物（はじめて使うときに作る）
+let finQrKey = "";        // VR の QR に いま描いてある中身
+let finLibWaiting = false; // 画面版：QR のライブラリを読み終えたら表示を更新する
+const finCapMat = new THREE.MeshBasicMaterial({ color: 0xffffff, toneMapped: false });   // 写すとき：光の当たり方をなくし、墨の色そのままに
+
+// ===== 紙の色 =====
+// 白い墨（ほぼ白）を使っているか
+function capHasWhiteInk(){
+    for(let i = 0; i < stampIndex; i++){
+        const c = histReadColor(i, histScratchC);
+        if(c.r > 0.9 && c.g > 0.9 && c.b > 0.9) return true;
+    }
+    return false;
+}
+// 画像の紙の色：白。白い墨を使っているときは、白い線が見えるように和紙色
+function capPaperHex(){
+    return capHasWhiteInk() ? CAP_PAPER_WASHI : CAP_PAPER_WHITE;
+}
+
+// ===== 写す =====
+// 書いた線を、向き quat の遠近なしカメラで写す。線の範囲＋余白で切り取る。戻り値 { canvas, W, H }（線がなければ null）
+function finCapture(quat){
+    if(stampIndex === 0) return null;
+    textGroup.updateMatrixWorld(true);
+    const tg = textGroup.matrixWorld;
+    const inv = quat.clone().invert();
+    const p = new THREE.Vector3();
+    let x0 = Infinity, y0 = Infinity, z0 = Infinity, x1 = -Infinity, y1 = -Infinity, z1 = -Infinity;
+    for(let i = 0; i < stampIndex; i++){
+        const e = histReadMatrix(i, histScratchM).elements;
+        const r = Math.max(Math.hypot(e[0], e[1], e[2]), Math.hypot(e[4], e[5], e[6]), Math.hypot(e[8], e[9], e[10]));   // スタンプの半径
+        p.set(e[12], e[13], e[14]).applyMatrix4(tg).applyQuaternion(inv);   // カメラの向きから見た位置
+        if(!isFinite(p.x) || !isFinite(p.y) || !isFinite(p.z) || !isFinite(r)) continue;
+        if(p.x - r < x0) x0 = p.x - r; if(p.x + r > x1) x1 = p.x + r;
+        if(p.y - r < y0) y0 = p.y - r; if(p.y + r > y1) y1 = p.y + r;
+        if(p.z - r < z0) z0 = p.z - r; if(p.z + r > z1) z1 = p.z + r;
+    }
+    if(!isFinite(x0)) return null;
+    const bw = x1 - x0, bh = y1 - y0;
+    const m = Math.max(FIN_MARGIN_MIN, FIN_MARGIN * Math.max(bw, bh));
+    const fw = bw + m * 2, fh = bh + m * 2;
+    const k = FIN_MAX_PX / Math.max(fw, fh);
+    const W = Math.max(1, Math.round(fw * k)), H = Math.max(1, Math.round(fh * k));
+    // 線の手前から、線の範囲のまん中を向くカメラ（上＝画面・視線の上、右＝右。鏡写しにならない）
+    const cam = new THREE.OrthographicCamera(-fw / 2, fw / 2, fh / 2, -fh / 2, 0.01, (z1 - z0) + 2);
+    cam.position.set((x0 + x1) / 2, (y0 + y1) / 2, z1 + 1).applyQuaternion(quat);
+    cam.quaternion.copy(quat);
+    cam.updateMatrixWorld(true);
+    return { canvas: capRender(cam, W, H, capPaperHex()), W, H };
+}
+
+// 自分の線（textGroup）だけを、紙の色の上に写した canvas を返す（作品展示の「おわる」と同じやり方）
+function capRender(cam, W, H, paperHex){
+    const rt = new THREE.WebGLRenderTarget(W, H, { samples: EXHIBIT_CAPTURE_SAMPLES, depthBuffer: true, stencilBuffer: false });
+    const hidden = [];
+    for(const c of scene.children){
+        if(c === textGroup || c.isLight || !c.visible) continue;
+        c.visible = false;
+        hidden.push(c);
+    }
+    const paper = new THREE.Color(paperHex);
+    const oldBg = scene.background, oldOverride = scene.overrideMaterial;
+    scene.background = paper;
+    scene.overrideMaterial = finCapMat;
+    const wasXR = renderer.xr.enabled;
+    const prevRT = renderer.getRenderTarget();
+    // AR（パススルー）中は背景色が無視されるので、写すあいだだけ止める（作品展示と同じ）
+    const origBlendMode = renderer.xr.getEnvironmentBlendMode;
+    renderer.xr.getEnvironmentBlendMode = () => undefined;
+    renderer.xr.enabled = false;
+    try {
+        renderer.setRenderTarget(rt);
+        renderer.render(scene, cam);
+    } finally {
+        renderer.setRenderTarget(prevRT);
+        renderer.xr.enabled = wasXR;
+        renderer.xr.getEnvironmentBlendMode = origBlendMode;
+        scene.background = oldBg;
+        scene.overrideMaterial = oldOverride;
+        for(const c of hidden) c.visible = true;
+    }
+    const px = new Uint8Array(W * H * 4);
+    renderer.readRenderTargetPixels(rt, 0, 0, W, H, px);
+    rt.dispose();
+    const canvas = document.createElement("canvas");
+    canvas.width = W;
+    canvas.height = H;
+    const ctx = canvas.getContext("2d");
+    const img = ctx.createImageData(W, H);
+    const d = img.data, row = W * 4;
+    const pr = paper.r, pg = paper.g, pb = paper.b;   // 紙の色（リニア）
+    for(let y = 0; y < H; y++){
+        const src = y * row, dst = (H - 1 - y) * row;   // 上下を反転
+        for(let x = 0; x < row; x += 4){
+            const a = 255 - px[src + x + 3];   // 透けているぶんは紙の色を重ねる
+            d[dst + x]     = EX_LIN2SRGB[Math.min(255, px[src + x]     + Math.round(a * pr))];
+            d[dst + x + 1] = EX_LIN2SRGB[Math.min(255, px[src + x + 1] + Math.round(a * pg))];
+            d[dst + x + 2] = EX_LIN2SRGB[Math.min(255, px[src + x + 2] + Math.round(a * pb))];
+            d[dst + x + 3] = 255;
+        }
+    }
+    ctx.putImageData(img, 0, 0);
+    return canvas;
+}
+
+function finFileName(date){
+    const p = n => String(n).padStart(2, "0");
+    return `${date.getFullYear()}${p(date.getMonth() + 1)}${p(date.getDate())}_` +
+           `${p(date.getHours())}${p(date.getMinutes())}${p(date.getSeconds())}_kuusho.jpg`;
+}
+
+// 写した画像から JPEG を作る（できたら QR 用に送る）
+function finMakeWork(cap){
+    const w = { canvas: cap.canvas, W: cap.W, H: cap.H, blob: null, url: "", fileName: finFileName(new Date()),
+                token: "", state: null, until: 0, error: "", texture: null };
+    cap.canvas.toBlob(b => {
+        if(finWork !== w || !b) return;
+        w.blob = b;
+        w.url = URL.createObjectURL(b);
+        finUpload();
+        finRefreshScreen();
+    }, "image/jpeg", EXHIBIT_JPEG_QUALITY);
+    return w;
+}
+
+function finDisposeWork(){
+    const w = finWork;
+    finWork = null;
+    finQrKey = "";
+    if(!w) return;
+    if(w.url) URL.revokeObjectURL(w.url);
+    if(w.texture) w.texture.dispose();
+}
+
+// ===== QR コード =====
+function finQrOn(){
+    return exQrEnabled && exQrConfigured();
+}
+
+function finQrUrl(w){
+    return exQrGasUrl + (exQrGasUrl.includes("?") ? "&" : "?") + "k=" + encodeURIComponent(w.token);
+}
+
+// GAS へ送る（作品展示の QR と同じ受け取りページ。7日で消える）
+async function finUpload(){
+    const w = finWork;
+    if(!w || !w.blob || w.state === "sending" || w.state === "ok" || !finQrOn()) return;
+    if(!w.token) w.token = exMakeQrToken();
+    w.state = "sending";
+    finRefreshScreen();
+    try {
+        const data = await exBlobToBase64(w.blob);
+        const j = await exGasCall({ k: w.token, type: "image/jpeg", data, label: w.fileName, extend: false });
+        w.until = Number(j.until) || (Date.now() + EXHIBIT_QR_KEEP_DAYS * 24 * 60 * 60 * 1000);
+        w.state = "ok";
+        w.error = "";
+        if(finWork === w && renderer.xr.isPresenting) vibrate("right", 60, 0.6);
+    } catch(e){
+        w.state = "error";
+        w.error = String((e && e.message) || e);
+        console.warn("おわる：作品を送れませんでした（QR コード）", e);
+    }
+    finRefreshScreen();
+}
+
+// いまの状態から、QR・案内・「もういちど」の出し方を決める
+function finQrView(w){
+    if(!exQrEnabled) return { qr: false, lines: ["QRコードは「しない」に なっています", "（スタート画面の せってい）"], retry: false };
+    if(!exQrConfigured()) return { qr: false, lines: ["受け取りQRの設定が まだです", "（スタート画面で GAS の URL と合言葉を入れてね）"], retry: false };
+    if(w.state === "error"){
+        const badKey = /合言葉/.test(w.error || "");
+        return { qr: false, retry: true, lines: badKey ? ["合言葉が ちがいます", "受け取りQRの設定を たしかめてね"]
+                                                       : ["さくひんを おくれませんでした", "ネットワークを たしかめてね"] };
+    }
+    if(w.state !== "ok") return { qr: false, lines: ["QRコードを じゅんび中…"], retry: false };
+    if(!exQrLib) return { qr: false, lines: ["QRコードを よみこみ中…"], retry: false };
+    return { qr: true, lines: ["スマホで よみとってね", `${exFormatUntil(w.until)} まで うけとれます`], retry: false };
+}
+
+// QR コードを canvas に描く（白いふち つき）。描けたら true
+function finDrawQr(canvas, text){
+    if(!exQrLib) return false;
+    let qr;
+    try {
+        qr = exQrLib(0, "M");
+        qr.addData(text);
+        qr.make();
+    } catch(e){
+        console.warn("おわる：QR コードを作れませんでした", e);
+        return false;
+    }
+    const n = qr.getModuleCount(), quiet = 4, total = n + quiet * 2;
+    const ctx = canvas.getContext("2d");
+    const cell = Math.floor(canvas.width / total);
+    const off = Math.floor((canvas.width - cell * total) / 2) + quiet * cell;
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "#000000";
+    for(let r = 0; r < n; r++){
+        for(let c = 0; c < n; c++){
+            if(qr.isDark(r, c)) ctx.fillRect(off + c * cell, off + r * cell, cell, cell);
+        }
+    }
+    return true;
+}
+
+// ===== 共通の流れ =====
+// 線を消す（墨は黒にもどす。お手本はかくす。読み込んだ絵の再生中なら やめる）
+function finClearDrawing(){
+    replayActive = false;
+    replayData = null;
+    replayWaitFrames = 0;
+    replayFrameCount = 0;
+    clearAll();
+    colorMode = COLOR_MODE.BW;
+    colorChanged = false;
+    isWhite = false;
+    currentColor.set(0x111111);
+    blackLockFrames = BLACK_LOCK_DURATION;
+    clearGuide();
+}
+
+// 最初から：画面版は視点をもどし、お手本の表示が「する」なら お手本を最初から再生する
+function finStartOver(){
+    if(screenMode){ scrResetView(); scrApplyCamera(); }
+    if(showDefaultText && defaultGalleryData){
+        startGuideReplay();
+        currentGalleryIndex = DEFAULT_SLOT;
+        updateGalleryHighlight();
+    }
+}
+
+function finHasDrawing(){
+    return stampIndex > 0 || (replayActive && !!replayData);
+}
+
+// もちかえる：写す → 線を消す → できた画像と QR を出す
+function finTake(){
+    if(replayActive) finishReplayImmediately();   // 再生中の絵は、最後まで出してから写す
+    const quat = screenMode ? camera.quaternion.clone() : finVRCaptureQuat();
+    const cap = finCapture(quat);
+    finDisposeWork();
+    if(!cap){
+        // 写せる線がない：けして おわる と同じ
+        finClearDrawing();
+        finStartOver();
+        if(screenMode){ finState = null; scrToast("かいた線が ないので、さいしょから かきます"); }
+        else finLeave();
+        return;
+    }
+    finWork = finMakeWork(cap);
+    finClearDrawing();
+    if(exQrEnabled) exQrLoadLib();
+    if(screenMode){
+        finShowScreenResult();
+    } else {
+        const t = new THREE.CanvasTexture(cap.canvas);
+        t.colorSpace = THREE.SRGBColorSpace;
+        finWork.texture = t;
+        finState = "show";
+        finGate = true;
+        exBtnNeedFresh = true;
+        finPlaceShow();
+        finVR.ask.visible = false;
+        finVR.show.visible = true;
+        vibrate("right", 120, 0.8);
+    }
+}
+
+// ===== VR =====
+// VR で写す向き：いま向いている水平の正面
+function finVRCaptureQuat(){
+    const { forward } = getViewerPose();
+    return new THREE.Quaternion().setFromAxisAngle(EX_AXIS_Y, Math.atan2(-forward.x, -forward.z));
+}
+
+// B ながおし（checkUndo から）。ふつうの VR で書いた線があれば「もちかえる？」を出して true
+function finOpenFromLongB(){
+    if(!renderer.xr.isPresenting || exState !== EX_OFF || finState) return false;
+    if(!finHasDrawing()) return false;   // 何も書いていない：これまでどおり
+    finEnsureVR();
+    finState = "ask";
+    finGate = true;           // B を離すまで選べない
+    exBtnNeedFresh = true;
+    finPlaceAsk();
+    finVR.ask.visible = true;
+    finVR.show.visible = false;
+    finVR.root.visible = true;
+    vibrate("right", 120, 0.9);
+    return true;
+}
+
+// VR の表示物を作る（ボタン・パネル・レイは作品展示と同じ部品）
+function finEnsureVR(){
+    if(finVR) return finVR;
+    exEnsureScene();
+    const root = new THREE.Group();
+    root.name = "finishRoot";
+    root.visible = false;
+    scene.add(root);
+    // --- もちかえる？ ---
+    const ask = new THREE.Group();
+    root.add(ask);
+    const askPanel = exMakePanel(1200, 260);
+    askPanel.visible = true;
+    ask.add(askPanel);
+    const btnTake = exMakeButton("もちかえる", "QRコードで うけとる");
+    const btnDiscard = exMakeButton("けして おわる", "さいしょから かく");
+    const btnContinue = exMakeButton("つづける", "このまま かく");
+    const askBtns = [btnTake, btnDiscard, btnContinue];
+    for(const b of askBtns) ask.add(b);
+    // 書いた線より手前に出すが、それでも重なったときに隠れないよう、線より後に・奥行きを無視して描く
+    for(const m of [askPanel, ...askBtns, ...askBtns.map(b => b.userData.glow)]){
+        m.material.depthTest = false;
+        m.renderOrder += 20;
+    }
+    // --- できた画像・案内・「おわる」・QR ---
+    const show = new THREE.Group();
+    root.add(show);
+    const work = new THREE.Group();
+    show.add(work);
+    const img = new THREE.Mesh(exUnitPlane, new THREE.MeshBasicMaterial({ side: THREE.DoubleSide, toneMapped: false }));
+    const border = new THREE.Mesh(exUnitPlane, new THREE.MeshBasicMaterial({
+        color: EXHIBIT_USER_BORDER_COLOR, side: THREE.DoubleSide, toneMapped: false
+    }));
+    border.position.z = -0.002;
+    work.add(img);
+    work.add(border);
+    const info = exMakePanel(EXHIBIT_HINT_CW, 400);
+    info.visible = true;
+    show.add(info);
+    const btnEnd = exMakeButton("おわる", "けして さいしょから かく");
+    show.add(btnEnd);
+    const qr = new THREE.Group();
+    show.add(qr);
+    const qrCanvas = document.createElement("canvas");
+    qrCanvas.width = 512;
+    qrCanvas.height = 512;
+    const qrTex = new THREE.CanvasTexture(qrCanvas);
+    qrTex.colorSpace = THREE.SRGBColorSpace;
+    qrTex.magFilter = THREE.NearestFilter;   // 白黒の境目をくっきり
+    qrTex.generateMipmaps = false;
+    qrTex.minFilter = THREE.LinearFilter;
+    const qrImg = new THREE.Mesh(exUnitPlane, new THREE.MeshBasicMaterial({ map: qrTex, side: THREE.DoubleSide, toneMapped: false }));
+    qrImg.scale.set(EXHIBIT_QR_SIZE, EXHIBIT_QR_SIZE, 1);
+    qrImg.renderOrder = 10;
+    qr.add(qrImg);
+    const qrPanel = exMakePanel(1200, 420);
+    qrPanel.visible = true;
+    qr.add(qrPanel);
+    const btnRetry = exMakeButton("もういちど", "QRコードを はっこう");
+    btnRetry.visible = false;
+    qr.add(btnRetry);
+    exAllBtnMeshes.push(btnTake, btnDiscard, btnContinue, btnEnd, btnRetry);   // 指したときに光らせる
+    finVR = { root, ask, askPanel, askBtns, btnTake, btnDiscard, btnContinue,
+              show, work, img, border, info, btnEnd, qr, qrCanvas, qrTex, qrImg, qrPanel, btnRetry };
+    return finVR;
+}
+
+// 目の前（水平の正面）の位置と向き
+function finFrontPose(dist, drop){
+    const { pos, forward } = getViewerPose();
+    const yaw = Math.atan2(-forward.x, -forward.z);   // 表（+Z）をプレイヤーへ向ける
+    const center = pos.clone().addScaledVector(forward, dist);
+    center.y = pos.y - drop;
+    return { center, yaw, quat: new THREE.Quaternion().setFromAxisAngle(EX_AXIS_Y, yaw) };
+}
+
+// 「もちかえる？」：題のパネルの下に、ボタンを縦に3つ
+function finPlaceAsk(){
+    const v = finVR;
+    const sub = finQrOn() ? "QRコードで うけとる" : "がぞうに する";
+    if(v.btnTake.userData.sub !== sub){
+        v.btnTake.userData.sub = sub;
+        exDrawButtonFace(v.btnTake, v.btnTake.userData.label, sub);
+    }
+    exDrawPanel(v.askPanel, "ask", [
+        { text: "この さくひんを もちかえる？", size: 92, bold: true },
+        { text: "ボタンを レイで さして トリガー（または A）", size: 50, color: "#e8c86a" }
+    ], 0.62, 40, 24);
+    const ph = v.askPanel.scale.y, gap = 0.04;
+    const total = ph + gap + EXHIBIT_BTN_H * 3 + FIN_ASK_VGAP * 2;
+    let y = total / 2;
+    v.askPanel.position.set(0, y - ph / 2, 0);
+    y -= ph + gap;
+    for(const b of v.askBtns){
+        b.position.set(0, y - EXHIBIT_BTN_H / 2, 0.01);
+        y -= EXHIBIT_BTN_H + FIN_ASK_VGAP;
+    }
+    // 書いた線の手前に出す（近く出すときは、見た目の大きさが同じになるよう小さくする）
+    const dist = finAskDistance();
+    const f = finFrontPose(dist, FIN_ASK_DROP * dist / FIN_ASK_DIST);
+    v.ask.position.copy(f.center);
+    v.ask.quaternion.copy(f.quat);
+    v.ask.scale.setScalar(dist / FIN_ASK_DIST);
+    v.root.updateMatrixWorld(true);
+}
+
+// 目の位置から見て、いちばん近い線（正面方向の距離）より少し手前の距離
+function finAskDistance(){
+    const { pos, forward } = getViewerPose();
+    textGroup.updateMatrixWorld(true);
+    const tg = textGroup.matrixWorld;
+    const p = new THREE.Vector3();
+    let near = Infinity;
+    for(let i = 0; i < stampIndex; i++){
+        const e = histReadMatrix(i, histScratchM).elements;
+        p.set(e[12], e[13], e[14]).applyMatrix4(tg).sub(pos);
+        const z = p.dot(forward);
+        if(z > 0.1 && z < near) near = z;    // 頭のうしろ・ごく近くの線は数えない
+    }
+    return THREE.MathUtils.clamp(near - 0.1, FIN_ASK_DIST_MIN, FIN_ASK_DIST);
+}
+
+// できた画像を目の前に出し、下に案内、左に「おわる」、右に QR（作品展示の④と同じ並び）
+function finPlaceShow(){
+    const v = finVR, w = finWork;
+    const f = finFrontPose(EXHIBIT_FIN_DIST, EXHIBIT_FIN_DROP);
+    const aspect = w.W / w.H, L = EXHIBIT_FIN_SIZE;
+    const pw = aspect >= 1 ? L : L * aspect;
+    const ph = aspect >= 1 ? L / aspect : L;
+    v.show.position.copy(f.center);
+    v.show.quaternion.copy(f.quat);
+    v.img.scale.set(pw, ph, 1);
+    v.img.material.map = w.texture;
+    v.img.material.needsUpdate = true;
+    v.border.scale.set(pw + EXHIBIT_FIN_BORDER * 2, ph + EXHIBIT_FIN_BORDER * 2, 1);
+    exDrawPanel(v.info, "info:" + finQrOn(), [
+        { text: "さくひんが できました！", size: 84, bold: true },
+        { text: finQrOn() ? "みぎの QRコードを スマホで よみとってね" : "（QRコードは スタート画面で せっていすると つかえます）", size: 52 },
+        { text: "ひだりの ボタン：おわる（けして さいしょから）", size: 54, bold: true, color: "#e8c86a" }
+    ], EXHIBIT_HINT_W, EXHIBIT_HINT_PAD_X, EXHIBIT_HINT_PAD_Y);
+    const hh = v.info.scale.y;
+    v.info.position.set(0, -(ph / 2) - EXHIBIT_HINT_DROP - hh / 2, EXHIBIT_HINT_FRONT);
+    v.info.rotation.set(-EXHIBIT_HINT_PITCH, 0, 0);   // 少し上向きにして読みやすく
+    const half = pw / 2 + EXHIBIT_FIN_BORDER;
+    v.btnEnd.position.set(-half - EXHIBIT_BTN_WORK_GAP - EXHIBIT_BTN_W / 2, 0, 0.01);
+    v.qr.position.set(half + EXHIBIT_QR_GAP + EXHIBIT_QR_SIZE / 2, 0.16, 0.01);
+    finQrKey = "";
+    finTickShowVR();
+    v.root.updateMatrixWorld(true);
+}
+
+// 毎フレーム：QR・案内・「もういちど」を状態に合わせる
+function finTickShowVR(){
+    const v = finVR, w = finWork;
+    if(!v || !w) return;
+    if(!exQrLib && exQrEnabled) exQrLoadLib();
+    if(!w.state && w.blob) finUpload();
+    const view = finQrView(w);
+    let drawn = false;
+    if(view.qr){
+        const key = w.token + "|" + exQrGasUrl;
+        if(finQrKey !== key && finDrawQr(v.qrCanvas, finQrUrl(w))){
+            v.qrTex.needsUpdate = true;
+            finQrKey = key;
+        }
+        drawn = finQrKey === key;
+    }
+    v.qrImg.visible = drawn;
+    const lines = view.lines.map((t, i) => ({ text: t, size: i === 0 ? 62 : 54, bold: i === 0, color: i === 0 ? "#f0e8d0" : "#e8c86a" }));
+    if(drawn) lines.push({ text: EXHIBIT_QR_TRADEMARK, size: 36, color: "#b8a888" });
+    exDrawPanel(v.qrPanel, "fq:" + lines.map(l => l.text).join("|"), lines, 0.34, 40, 26);
+    const ph = v.qrPanel.scale.y;
+    v.qrPanel.position.set(0, drawn ? -(EXHIBIT_QR_SIZE / 2 + 0.02 + ph / 2) : 0, 0.005);
+    v.btnRetry.visible = view.retry;
+    if(view.retry) v.btnRetry.position.set(0, v.qrPanel.position.y - ph / 2 - 0.03 - EXHIBIT_BTN_H / 2, 0.01);
+}
+
+// 毎フレーム（render() から）。VR で「もちかえる？」・できた画像を出しているあいだ true（既存の入力処理を止める）
+function finUpdate(){
+    if(!finState || !finVR || !renderer.xr.isPresenting) return false;
+    const now = performance.now();
+    exReadInput();
+    exUpdatePoses();
+    // トリガーはヒステリシス付き（作品展示と同じ）。前フレームの状態は、作品展示が止まっているあいだだけ ここで使う
+    const trigDown = exPrevTrigDown ? exIn.trig > 0.25 : exIn.trig > 0.55;
+    const aEdge = exIn.a && !exPrevA;
+    const keepPrev = () => {
+        exPrevTrigDown = trigDown;
+        exPrevTrigVal = exIn.trig;
+        exPrevA = exIn.a;
+        exPrevB = exIn.b;
+    };
+    if(brushGroup) brushGroup.visible = false;
+    galleryVisible = false;
+    if(exRoot) exRoot.visible = true;   // レイ（作品展示と共通の部品）を見せる
+    if(finState === "leave"){
+        // ボタンを全部離すまで、既存の描画などを止めておく（押しっぱなしで線が出ないように）
+        if(exAllReleased()) finEndLeave();
+        keepPrev();
+        return true;
+    }
+    if(finState === "show") finTickShowVR();
+    if(finGate){
+        if(exAllReleased()) finGate = false;
+        exResetButtonPointing();
+        keepPrev();
+        return true;
+    }
+    const v = finVR;
+    const meshes = finState === "ask" ? v.askBtns : (v.btnRetry.visible ? [v.btnEnd, v.btnRetry] : [v.btnEnd]);
+    exTickButtons(meshes, now, trigDown, aEdge, true);
+    const fired = exBtnFired;
+    keepPrev();
+    if(!fired) return true;
+    exBuzzDecide();
+    if(fired === v.btnTake){
+        finTake();
+    } else if(fired === v.btnDiscard){
+        finClearDrawing();
+        finStartOver();
+        finLeave();
+    } else if(fired === v.btnContinue){
+        finLeave();
+    } else if(fired === v.btnEnd){
+        finStartOver();
+        finLeave();
+    } else if(fired === v.btnRetry){
+        finUpload();
+    }
+    return true;
+}
+
+// VR：表示を消して、ボタンを全部離すのを待つ
+function finLeave(){
+    if(finVR) finVR.root.visible = false;
+    exResetButtonPointing();
+    finDisposeWork();
+    finState = "leave";
+}
+
+function finEndLeave(){
+    finState = null;
+    finGate = false;
+    exSyncExistingInputState();   // 既存の「前フレームの押下状態」をいまに合わせる（離した瞬間に もどす などが動かないように）
+    if(brushGroup) brushGroup.visible = !operationLocked;
+    exHideRay();
+    if(exRoot && exState === EX_OFF) exRoot.visible = !!(exMsgMesh && exMsgMesh.visible);
+}
+
+// VR に入りなおす・ぬけるときは、何も出ていない状態にもどす
+function finReset(){
+    if(finVR) finVR.root.visible = false;
+    finDisposeWork();
+    finState = null;
+    finGate = false;
+}
+renderer.xr.addEventListener("sessionstart", finReset);
+renderer.xr.addEventListener("sessionend", finReset);
+
+// ===== 画面版 =====
+const finEl = {
+    ask: document.getElementById("finAskModal"),
+    takeNote: document.getElementById("finTakeNote"),
+    result: document.getElementById("finResultModal"),
+    img: document.getElementById("finImg"),
+    qrBox: document.getElementById("finQrBox"),
+    qrCanvas: document.getElementById("finQrCanvas"),
+    qrMsg: document.getElementById("finQrMsg"),
+    qrRetry: document.getElementById("finQrRetry"),
+    qrTm: document.getElementById("finQrTm"),
+    save: document.getElementById("finSaveBtn")
+};
+
+// 「🏁 おわる」（scrDrawingAction から）
+function finOpenScreen(){
+    if(finState) return;
+    if(!finHasDrawing()){ scrToast("まだ なにも かいていません"); return; }
+    finState = "ask";
+    finEl.takeNote.textContent = finQrOn()
+        ? "がぞうを ほぞんしたり QRコードで うけとったり できます。そのあと けして さいしょから かきます"
+        : "がぞうを ほぞんできます。そのあと けして さいしょから かきます";
+    scrClosePops();
+    finEl.ask.classList.add("open");
+}
+
+function finCloseAsk(){
+    finEl.ask.classList.remove("open");
+    if(finState === "ask") finState = null;
+}
+
+function finShowScreenResult(){
+    finState = "show";
+    finQrKey = "";
+    finEl.img.removeAttribute("src");
+    finEl.save.textContent = "💾 がぞうを ほぞん";
+    finEl.save.disabled = true;   // JPEG ができるまで
+    finEl.result.classList.add("open");
+    finRefreshScreen();
+}
+
+// できた画像・QR の表示を いまの状態に合わせる（画面版）
+function finRefreshScreen(){
+    const w = finWork;
+    if(!screenMode || finState !== "show" || !w) return;
+    if(w.url && finEl.img.getAttribute("src") !== w.url) finEl.img.src = w.url;
+    finEl.save.disabled = !w.blob;
+    // QR は「する」で受け取りQRの設定がある端末だけ（来場者のスマホでは出さない）
+    if(!finQrOn()){ finEl.qrBox.hidden = true; return; }
+    finEl.qrBox.hidden = false;
+    const view = finQrView(w);
+    let drawn = false;
+    if(view.qr){
+        const key = w.token + "|" + exQrGasUrl;
+        if(finQrKey === key || finDrawQr(finEl.qrCanvas, finQrUrl(w))){ finQrKey = key; drawn = true; }
+    }
+    finEl.qrCanvas.hidden = !drawn;
+    finEl.qrTm.hidden = !drawn;
+    finEl.qrMsg.textContent = view.lines.join("\n");
+    finEl.qrRetry.hidden = !view.retry;
+    if(!exQrLib && !finLibWaiting){
+        finLibWaiting = true;
+        exQrLoadLib().then(() => { finLibWaiting = false; if(exQrLib) finRefreshScreen(); });
+    }
+}
+
+// 画像を端末に保存：スマホ・タブレットは共有メニュー（写真に保存できる）、PC はダウンロード
+async function finSaveImage(){
+    const w = finWork;
+    if(!w || !w.blob) return;
+    const coarse = !!(window.matchMedia && window.matchMedia("(pointer: coarse)").matches);
+    if(coarse && navigator.canShare && navigator.share){
+        try {
+            const file = new File([w.blob], w.fileName, { type: "image/jpeg" });
+            if(navigator.canShare({ files: [file] })){
+                await navigator.share({ files: [file], title: "越前・空書" });
+                return;
+            }
+        } catch(e){
+            if(e && e.name === "AbortError") return;   // 共有メニューを とじただけ
+        }
+    }
+    const a = document.createElement("a");
+    a.href = w.url;
+    a.download = w.fileName;
+    a.style.display = "none";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    finEl.save.textContent = "✅ ほぞんしました";
+}
+
+// おわる（さいしょから）
+function finEndScreen(){
+    finEl.result.classList.remove("open");
+    finDisposeWork();
+    finState = null;
+    finStartOver();
+}
+
+// メニューにもどるときなど
+function finCloseScreenModals(){
+    finEl.ask.classList.remove("open");
+    finEl.result.classList.remove("open");
+    if(screenMode || !renderer.xr.isPresenting){
+        if(finState === "show") finDisposeWork();
+        finState = null;
+    }
+}
+
+(function(){
+    document.getElementById("finTakeBtn").addEventListener("click", () => {
+        finEl.ask.classList.remove("open");
+        scrDrawingAction(finTake);   // 写すのは毎フレームの処理の中で
+    });
+    document.getElementById("finDiscardBtn").addEventListener("click", () => {
+        finEl.ask.classList.remove("open");
+        scrDrawingAction(() => {
+            finClearDrawing();
+            finStartOver();
+            finState = null;
+            scrToast("けしました。さいしょから かこう！");
+        });
+    });
+    document.getElementById("finContinueBtn").addEventListener("click", finCloseAsk);
+    finEl.ask.addEventListener("click", e => { if(e.target === finEl.ask) finCloseAsk(); });
+    document.addEventListener("keydown", e => { if(e.key === "Escape" && finEl.ask.classList.contains("open")) finCloseAsk(); });
+    finEl.save.addEventListener("click", finSaveImage);
+    document.getElementById("finEndBtn").addEventListener("click", finEndScreen);
+    finEl.qrRetry.addEventListener("click", () => {
+        if(finWork){ finWork.state = null; finUpload(); }
     });
 })();
 
