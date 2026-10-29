@@ -9276,8 +9276,7 @@ const FIN_MARGIN = 0.10;               // 線の範囲のまわりに足す余�
 const FIN_MARGIN_MIN = 0.01;           // 余白の最小（m）
 const CAP_PAPER_WHITE = 0xffffff;      // 白い紙
 const CAP_PAPER_WASHI = 0xe2dac8;      // 和紙色（画面版の背景と同じ色）
-const FIN_ASK_DIST = 0.8;              // VR：「もちかえる？」を出す距離（m）。書いた線がもっと近ければ、その手前に出す
-const FIN_ASK_DIST_MIN = 0.35;         // VR：いちばん近くに出すときの距離（m）
+const FIN_ASK_DIST = EXHIBIT_FIN_DIST; // VR：「もちかえる？」を出す距離（m）。このあと出す作品画像と同じ奥行き
 const FIN_ASK_DROP = 0.12;             // VR：目の高さから下げる量（m）
 const FIN_ASK_VGAP = 0.05;             // VR：ボタンどうしのすき間（m）
 
@@ -9595,7 +9594,7 @@ function finEnsureVR(){
     const btnContinue = exMakeButton("つづける", "このまま かく");
     const askBtns = [btnTake, btnDiscard, btnContinue];
     for(const b of askBtns) ask.add(b);
-    // 書いた線より手前に出すが、それでも重なったときに隠れないよう、線より後に・奥行きを無視して描く
+    // 作品画像と同じ奥行き（書いた線より奥になることが多い）に出すので、線に隠れないよう、線より後に・奥行きを無視して描く
     for(const m of [askPanel, ...askBtns, ...askBtns.map(b => b.userData.glow)]){
         m.material.depthTest = false;
         m.renderOrder += 20;
@@ -9673,29 +9672,11 @@ function finPlaceAsk(){
         b.position.set(0, y - EXHIBIT_BTN_H / 2, 0.01);
         y -= EXHIBIT_BTN_H + FIN_ASK_VGAP;
     }
-    // 書いた線の手前に出す（近く出すときは、見た目の大きさが同じになるよう小さくする）
-    const dist = finAskDistance();
-    const f = finFrontPose(dist, FIN_ASK_DROP * dist / FIN_ASK_DIST);
+    // このあと出す作品画像と同じ奥行きに出す（線より奥になることが多いが、線の上に重ねて描くので隠れない）
+    const f = finFrontPose(FIN_ASK_DIST, FIN_ASK_DROP);
     v.ask.position.copy(f.center);
     v.ask.quaternion.copy(f.quat);
-    v.ask.scale.setScalar(dist / FIN_ASK_DIST);
     v.root.updateMatrixWorld(true);
-}
-
-// 目の位置から見て、いちばん近い線（正面方向の距離）より少し手前の距離
-function finAskDistance(){
-    const { pos, forward } = getViewerPose();
-    textGroup.updateMatrixWorld(true);
-    const tg = textGroup.matrixWorld;
-    const p = new THREE.Vector3();
-    let near = Infinity;
-    for(let i = 0; i < stampIndex; i++){
-        const e = histReadMatrix(i, histScratchM).elements;
-        p.set(e[12], e[13], e[14]).applyMatrix4(tg).sub(pos);
-        const z = p.dot(forward);
-        if(z > 0.1 && z < near) near = z;    // 頭のうしろ・ごく近くの線は数えない
-    }
-    return THREE.MathUtils.clamp(near - 0.1, FIN_ASK_DIST_MIN, FIN_ASK_DIST);
 }
 
 // できた画像を目の前に出し、下に案内、左に「おわる」、右に QR（作品展示の④と同じ並び）
