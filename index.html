@@ -789,6 +789,13 @@ body.scr-on canvas.scr-canvas {
 }
 #scrGallery .scr-empty { max-width: 280px; font-size: 13px; line-height: 1.6; color: #ddd4b8; }
 .scr-help { margin: 0 0 14px; padding-left: 1.2em; font-size: 14px; line-height: 1.8; }
+/* 画像の紙の色の設定 */
+.start-slider-block.ssl-paper .ssl-row { margin: 10px 0 8px; }
+.start-slider-block.ssl-paper .ssl-tm { text-align: left; margin-top: 0; line-height: 1.5; }
+.paper-sw {
+  display: inline-block; width: 14px; height: 14px; margin-right: 6px; vertical-align: -2px;
+  border-radius: 3px; border: 1px solid rgba(0,0,0,0.45); box-shadow: 0 0 0 1px rgba(255,255,255,0.25);
+}
 /* おわる（もちかえる？）・できた さくひん */
 .ex-modal .fin-take { border-color: rgba(200,168,74,0.75); background: rgba(200,168,74,0.22); color: #fff1c8; }
 .ex-modal .qrs-inner.fin-result { width: min(760px, 100%); }
@@ -924,6 +931,15 @@ body.scr-on canvas.scr-canvas {
         <button class="start-file-btn" id="repeatToggle" style="min-width:8em;">🚫 しない</button>
       </div>
       </div><!-- /presetDetails -->
+    </div>
+
+    <!-- 「もちかえる」・作品展示で作る画像の紙の色（VR・画面版・作品展示 共通。この端末に覚える） -->
+    <div class="start-slider-block ssl-paper">
+      <div class="ssl-row">
+        <span class="ssl-lbl">がぞうの かみの いろ</span>
+        <button type="button" class="start-file-btn" id="paperToggle" style="min-width:8em;">しろ</button>
+        <div class="ssl-tm">しろい すみを つかったときは、しろい せんが 見えるように すこし こい わしいろに なります</div>
+      </div>
     </div>
 
     <!-- 画面版がメインの端末では、VR（Quest）用の作品展示の設定は たたんでおく（管理する人が ひらける） -->
@@ -4563,7 +4579,7 @@ const EXHIBIT_ADJ_DIST = 0.7;            // 目の前に置く距離（m）
 const EXHIBIT_ADJ_DROP = 0.15;           // 目の高さからこれだけ下に置く（m）
 const EXHIBIT_SIZE_MIN = 0.334;          // 最小：半紙（24.3×33.4cm）の長辺（m）
 const EXHIBIT_SIZE_MAX = EXHIBIT_SIZE_MIN * 5;    // 最大：半紙の5倍
-const EXHIBIT_SIZE_INIT = EXHIBIT_SIZE_MIN * 3;    // 置いた直後：半紙の3倍
+const EXHIBIT_SIZE_INIT = EXHIBIT_SIZE_MIN * 3 * 0.8;    // 置いた直後（と「リセット」）：半紙の2.4倍（以前の3倍の0.8倍）
 const EXHIBIT_TILT_MAX = Math.PI / 2;    // 0＝垂直に立つ ／ π/2＝水平（上端が奥へ倒れ、机に置いた紙の向き）
 const EXHIBIT_TILT_RATE = EXHIBIT_TILT_MAX / 1.5;  // 全倒し1.5秒で 垂直→水平
 const EXHIBIT_SIZE_RATE = Math.log(3) / 1.5;       // 全倒し1.5秒で3倍になる速さ（最小→最大は約2.2秒）
@@ -9275,7 +9291,9 @@ const FIN_MAX_PX = 2048;               // 画像の長辺（px）
 const FIN_MARGIN = 0.10;               // 線の範囲のまわりに足す余白（長いほうの辺に対する割合）
 const FIN_MARGIN_MIN = 0.01;           // 余白の最小（m）
 const CAP_PAPER_WHITE = 0xffffff;      // 白い紙
-const CAP_PAPER_WASHI = 0xe2dac8;      // 和紙色（画面版の背景と同じ色）
+const CAP_PAPER_LIGHT = 0xf2ebdc;      // うすい和紙（開始画面の「がぞうの かみの いろ」で えらべる）
+const CAP_PAPER_WASHI = 0xe2dac8;      // 白い墨を使ったときの和紙色（画面版の背景と同じ色）
+const CAP_PAPER_SETTING_KEY = "echizen-kuusho.paper";   // "washi" ＝うすい和紙／それ以外＝白
 const FIN_ASK_DIST = EXHIBIT_FIN_DIST; // VR：「もちかえる？」を出す距離（m）。このあと出す作品画像と同じ奥行き
 const FIN_ASK_DROP = 0.12;             // VR：目の高さから下げる量（m）
 const FIN_ASK_VGAP = 0.05;             // VR：ボタンどうしのすき間（m）
@@ -9297,10 +9315,28 @@ function capHasWhiteInk(){
     }
     return false;
 }
-// 画像の紙の色：白。白い墨を使っているときは、白い線が見えるように和紙色
+// 画像の紙の色：開始画面で えらんだ色（白／うすい和紙）。白い墨を使っているときは、白い線が見えるように和紙色
 function capPaperHex(){
-    return capHasWhiteInk() ? CAP_PAPER_WASHI : CAP_PAPER_WHITE;
+    if(capHasWhiteInk()) return CAP_PAPER_WASHI;
+    return exLoadSetting(CAP_PAPER_SETTING_KEY) === "washi" ? CAP_PAPER_LIGHT : CAP_PAPER_WHITE;
 }
+
+// 開始画面の「がぞうの かみの いろ」（しろ ⇔ わし）。この端末のブラウザに覚える
+(function(){
+    const btn = document.getElementById("paperToggle");
+    if(!btn) return;
+    const hex = n => "#" + n.toString(16).padStart(6, "0");
+    function refresh(){
+        const washi = exLoadSetting(CAP_PAPER_SETTING_KEY) === "washi";
+        btn.innerHTML = `<span class="paper-sw" style="background:${hex(washi ? CAP_PAPER_LIGHT : CAP_PAPER_WHITE)}"></span>${washi ? "わし" : "しろ"}`;
+    }
+    btn.addEventListener("click", () => {
+        const washi = exLoadSetting(CAP_PAPER_SETTING_KEY) === "washi";
+        exSaveSetting(CAP_PAPER_SETTING_KEY, washi ? "" : "washi");
+        refresh();
+    });
+    refresh();
+})();
 
 // ===== 写す =====
 // 書いた線を、向き quat の遠近なしカメラで写す。線の範囲＋余白で切り取る。戻り値 { canvas, W, H }（線がなければ null）
@@ -9911,6 +9947,7 @@ async function finSaveImage(){
 // おわる（さいしょから）
 function finEndScreen(){
     finEl.result.classList.remove("open");
+    finEl.img.removeAttribute("src");   // 前の画像を残さない
     finDisposeWork();
     finState = null;
     finStartOver();
@@ -9920,6 +9957,7 @@ function finEndScreen(){
 function finCloseScreenModals(){
     finEl.ask.classList.remove("open");
     finEl.result.classList.remove("open");
+    finEl.img.removeAttribute("src");
     if(screenMode || !renderer.xr.isPresenting){
         if(finState === "show") finDisposeWork();
         finState = null;
