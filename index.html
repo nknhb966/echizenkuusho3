@@ -1181,7 +1181,7 @@ body.scr-on canvas.scr-canvas {
             <div class="ctrl-label-row"><span class="btn-badge green">③ A ボタン</span><span class="desc">くろ↔しろ に きりかえる（メニューで「リピート」を する にすると、ながおしで さいしょから もういちど見る）</span></div>
             <div class="ctrl-label-row"><span class="btn-badge orange">④ B ボタン</span><span class="desc">1つもどる（かわいた墨は もどせない）。ながくおすと「おわる」：もちかえる（QRコード）／けして おわる／つづける を えらべる（さくひんてんじ中は ぜんぶけす）</span></div>
             <div class="ctrl-label-row"><span class="btn-badge gray">⑤ メニューボタン</span><span class="desc">メニューに もどる（もどって入りなおすと「こてい」も かいじょされる）</span></div>
-            <div class="ctrl-label-row"><span class="btn-badge gray">⑥ グリップ</span><span class="desc">にぎりながら… A＝絵をうごかす／B＝絵をまわす（メニューで「絵をうごかす・まわす」を する のとき）／スティック上下＝ふとさ・左右＝はらいのながさ（メニューで「ちょうせい」のとき）／おしこみ＝もとにもどす</span></div>
+            <div class="ctrl-label-row"><span class="btn-badge gray">⑥ グリップ</span><span class="desc">にぎりながら… A＝絵をうごかす／B＝絵をまわす（メニューで「絵をうごかす・まわす」を する のとき）／スティック上下＝ふとさ・左右＝はらいのながさ、おしこみ＝もとにもどす（メニューで「ちょうせい」のとき。「こてい」のときは、にぎっていても スティックで いろ・おしこみで おてほん）</span></div>
             <div class="ctrl-label-row"><span class="btn-badge gray">🔒 こてい</span><span class="desc">みぎのグリップ＋トリガーを いっしょに引いたまま A を10回つづけておすと、かけない・けせない「こてい」になる。おなじそうさで かいじょ。こてい中に そうさしようとすると ブルッと ふるえる。メニューにもどって 入りなおしても かいじょ</span></div>
           </div>
         </div>
@@ -2616,7 +2616,9 @@ function clearAll(){
 function checkClear(){
     if(!gamepad) return;
     const pressed = !!gamepad.buttons[BTN_STICK]?.pressed;
-    const gripHeld = getTriggerValue(1) >= GRIP_PAN_THRESHOLD;
+    // ★太さ・はらいが どちらも「こてい」のとき（グリップ＋押し込みのリセットを使わないとき）は、グリップを握っていても反応させる
+    const gripHeld = (brushSizeAdjustEnabled || releaseTauAdjustEnabled)
+                  && getTriggerValue(1) >= GRIP_PAN_THRESHOLD;
     // スティック押し込み（グリップなし）で、お手本の表示／非表示を切り替える。
     //   お手本が出ている（再生中・再生後）とき → 消す
     //   お手本が消えているとき               → 最初からアニメ再生
@@ -3687,7 +3689,8 @@ function updateBrushSizeAdjust(){
 
         if(gripHeld && !aHeld && !bHeld){
             // グリップ＋スティック押し込み：太さ・はらいをデフォルトへリセット
-            if(stickPressed && !prevGripStickPressed){
+            // ★どちらも「こてい」のときはリセットするものがないので何もしない（押し込みは お手本の表示／非表示になる）
+            if(stickPressed && !prevGripStickPressed && (brushSizeAdjustEnabled || releaseTauAdjustEnabled)){
                 if(brushSizeAdjustEnabled)  maxBrushSize = BRUSH_SIZE_DEFAULT;
                 if(releaseTauAdjustEnabled) releaseTau = RELEASE_TAU_DEFAULT;
                 brushIndicatorTimer = 80;
