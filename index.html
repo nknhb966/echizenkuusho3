@@ -3796,8 +3796,10 @@ function updateColor(){
     }
 
     const stickBeingPressed = gamepad.buttons[BTN_STICK]?.pressed;
-    // グリップ（中指）を握っている間はスティックを太さ調整に使うため色変更しない
-    const gripHeldForSize = getTriggerValue(1) >= GRIP_PAN_THRESHOLD;
+    // グリップ（中指）を握っている間はスティックを太さ・はらいの調整に使うため色変更しない。
+    // ★ただし太さ・はらいが どちらも「こてい」のとき（調整に使わないとき）は、グリップを握っていても色を変える
+    const gripHeldForSize = (brushSizeAdjustEnabled || releaseTauAdjustEnabled)
+                         && getTriggerValue(1) >= GRIP_PAN_THRESHOLD;
 
     if(!stickBeingPressed && !gripHeldForSize){
         const x = gamepad.axes[AXIS_X];
